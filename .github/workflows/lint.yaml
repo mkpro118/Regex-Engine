@@ -2,15 +2,9 @@ name: linter
 
 on:
   push:
-    paths:
-      - "src/"
-      - "include/"
-      - "tests/"
+    branches:
+      - main
   pull_request:
-    paths:
-      - "src/"
-      - "include/"
-      - "tests/"
 
 
 jobs:
