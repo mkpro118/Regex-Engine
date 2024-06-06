@@ -1,17 +1,6 @@
 name: linter
 
-on:
-  push:
-    paths:
-      - "src/"
-      - "include/"
-      - "tests/"
-  pull_request:
-    paths:
-      - "src/"
-      - "include/"
-      - "tests/"
-
+on: [push, pull_request]
 
 jobs:
   linter:
