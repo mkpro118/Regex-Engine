@@ -1,6 +1,11 @@
 name: linter
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
 
 jobs:
   linter:
