@@ -6,6 +6,8 @@ typedef enum TokenType {
     QUESTION,
     RPAREN,
     STAR,
+    EOF,
+    ERROR,
 } TokenType;
 
 typedef struct Token {
