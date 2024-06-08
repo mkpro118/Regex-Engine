@@ -102,3 +102,32 @@ int tokenize(Lexer* lexer, Token* buf, size_t buf_size) {
 
     return n_tokens;
 }
+
+// Returns dynamically allocated array of all the tokens from the given lexer
+Token* tokenize_all(Lexer* lexer, size_t* size) {
+    int remaining_chars = lexer->_regex_lex - lexer->_position;
+
+    if (remaining_chars <= 0) {
+        *size = 0;
+        return NULL;
+    }
+
+    // The returned array size is equal to the number of remaining characters
+    *size = remaining_chars;
+
+    Token* tokens = malloc(sizeof(Token) * remaining_chars);
+
+    for (int i = 0; i < remaining_chars; i++) {
+        // If next_token fails, then tokenize_all fails
+        if (next_token(lexer, &tokens[i]) < 0) {
+            // Free tokens array to not leak memory
+            free(tokens);
+
+            // Reset array size due to failure
+            *size = 0;
+            return NULL;
+        }
+    }
+
+    return tokens;
+}
