@@ -28,6 +28,4 @@ char* strdup(const char* source) {
 #error "Unknown compiler"
 #endif
 
-typedef int make_iso_compilers_happy;
-
-#endif
+#endif // _REGEX_PORTABILITY_H_
