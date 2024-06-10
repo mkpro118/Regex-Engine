@@ -1,3 +1,5 @@
+#include <ctype.h>
+
 #include "asserts.h"
 
 // CHAR,
@@ -11,7 +13,12 @@
 // ERROR,
 
 void test_str_token_char(void) {
-    for (char c = 'a'; c <= 'z'; c++) {
+    for (unsigned char c = 0; c < 'z'; c++) {
+        // We do not try non printable characters
+        if (!isprint(c)) {
+            continue;
+        }
+
         Token token = {.type = CHAR, .value = c};
 
         char expected[] = {'C', 'H', 'A', 'R', '(', '\'', c, '\'', ')', '\0'};
@@ -23,5 +30,5 @@ void test_str_token_char(void) {
 int main(void)
 {
     test_str_token_char();
-    return 0;
+    return ASSERTS_EXIT_CODE;
 }
