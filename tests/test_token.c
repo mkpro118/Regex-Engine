@@ -13,7 +13,7 @@
 // ERROR,
 
 void test_str_token_char(void) {
-    for (unsigned char c = 0; c < 'z'; c++) {
+    for (unsigned char c = 0; c <= 127; c++) {
         // We do not try non printable characters
         if (!isprint(c)) {
             continue;
