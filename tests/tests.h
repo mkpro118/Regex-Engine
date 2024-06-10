@@ -5,11 +5,11 @@
 #include <sys/types.h>
 
 // Function type for test functions
-typedef void (*test_func)(void);
+typedef void (*test_func_t)(void);
 
 typedef struct Test {
     char* name;
-    test_func func;
+    test_func_t func;
 } Test;
 
 typedef struct TestSuite {
