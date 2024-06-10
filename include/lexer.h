@@ -15,7 +15,7 @@
 typedef struct Lexer {
     const char* _regex;
     size_t _position;
-    ssize_t _regex_lex;
+    size_t _regex_lex;
 } Lexer;
 
 
