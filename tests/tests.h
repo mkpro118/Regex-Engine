@@ -42,6 +42,15 @@ extern Test tests[];
  *                    0: Turn off verbosity
  *                    1: Only display progress
  *                    2: Display each test with progress report
+ *     - randomize: Set to 1 to randomize the order of test execution. Defaults to 0.
+ *     - dry_run: Display the tests to be run, without actually running them
+ *     - timeout: Maximum time for any test, in milliseconds.
+ *                A value of 0 represents no timeout
+ *     - included: An array of names of tests to be executed
+ *     - included_size: The size of the `included` array
+ *     - excluded: An array of names of tests to be ignored/excluded in the suite.
+ *     - excluded_size: The size of the `excluded` array
+ *     - output_file: Redirects output to the given file
  */
 struct TestOpts {
     unsigned char fail_fast: 1;
@@ -55,8 +64,8 @@ struct TestOpts {
     char** included;
     size_t included_size;
 
-    char** ignored;
-    size_t ignored_size;
+    char** excluded;
+    size_t excluded_size;
 
     char* output_file;
 };
