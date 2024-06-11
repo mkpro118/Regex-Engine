@@ -1,10 +1,34 @@
+#include <errno.h>
+
 #include "tests.h"
 #include "asserts.h"
+
+#define NO_ERROR 0
+#define UNSUPPORTED_OPTION 1
+#define STRTOL_ERROR 2
+#define NO_VALUE_TO_VERBOSE 3
+#define INVALID_VALUE_TO_VERBOSE 4
+#define NO_VALUE_TO_RUN 5
+#define UNKNOWN_TEST_TO_RUN 6
 
 struct TestSuite {
     Test* tests;
     size_t n_tests;
     TestOpts* opts;
+};
+
+static const TestOpts defaultOpts = {
+    .fail_fast = 0,
+    .parallel = 0,
+    .verbose = 1,
+    .randomize = 0,
+    .dry_run = 0,
+    .timeout = 0,
+    .included = NULL,
+    .included_size = 0,
+    .excluded = NULL,
+    .excluded_size = 0,
+    .output_file = NULL,
 };
 
 const char tests_help_str[] =
@@ -21,12 +45,161 @@ const char tests_help_str[] =
 "to 0)\n"
 "  -z, --randomize: Run tests in a random order.\n";
 
+
 // A help/usage string for the options used by a Test Suite
 const char* opts_help_str(void) {
     return tests_help_str;
 }
 
+
 // Prints a help/usage string for the options used by a Test Suite to stdout
 void print_opts_help(void) {
     fprintf(stdout, "%s", tests_help_str);
+}
+
+
+// Returns a message given a parser error code
+const char* str_parse_error(int err) {
+    switch (err) {
+    case NO_ERROR:
+        return "no error";
+    case UNSUPPORTED_OPTION:
+        return "unsupported option passed";
+    case STRTOL_ERROR:
+        return "error on call to strtol. check errno for more information";
+    case NO_VALUE_TO_VERBOSE:
+        return "no value provided to the verbose option";
+    case INVALID_VALUE_TO_VERBOSE:
+        return "invalid value provided to the verbose option";
+    case NO_VALUE_TO_RUN:
+        return "no value provided to the run option";
+    case UNKNOWN_TEST_TO_RUN:
+        return "unknown test specified";
+    default:
+        errno = EINVAL;
+        return "unknown error";
+    }
+}
+
+
+// Find a test given it's name
+Test* find_test_by_name(char* name) {
+    Test* test_ptr = tests;
+    while (test_ptr != NULL) {
+        if (strcmp(name, test_ptr->name) == 0)
+            return test_ptr;
+        test_ptr++;
+    }
+    return NULL;
+}
+
+
+// Add the test with the given name to the options
+int include_test(TestOpts* opts_buf, char* name) {
+    // Ensure the next value is a recognized test function
+    if (find_test_by_name(name) == NULL) {
+        return UNKNOWN_TEST_TO_RUN;
+    }
+
+    // If it is, add it to the included tests
+    opts_buf->included[opts_buf->included_size++] = name;
+
+    return 0; // Success
+}
+
+
+// Macro for option string comparison
+#define check_opt(var, shorthand, option) (strcmp(var, shorthand) == 0 || strcmp(var, option) == 0)
+
+
+// Parse args to create a set of options used by the test runner.
+int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
+    // Clear out old options
+    *opts_buf = defaultOpts;
+
+    if (opts == NULL || opts_size == 0) {
+        return NO_ERROR;
+    }
+
+    // Determine the total number of tests
+    Test* test_ptr = tests;
+    size_t n_tests = 0;
+    while (test_ptr++ != NULL) {
+        n_tests++;
+    }
+
+    opts_buf->included = malloc(sizeof(char*) * n_tests);
+    opts_buf->included_size = 0;
+    opts_buf->excluded = malloc(sizeof(char*) * n_tests);
+    opts_buf->excluded_size = 0;
+
+    // If the run option is not provided,
+    // execute all tests that are not excluded
+    unsigned char opt_run_seen = 0;
+
+    enum parse_contexts {
+        NO_CONTEXT,
+        INCLUDE,
+        EXCLUDE,
+    };
+
+    enum parse_contexts context = NO_CONTEXT;
+
+    for (size_t i = 0; i < opts_size; i++) {
+        char* opt = opts[i];
+
+        // Fail Fast
+        if (check_opt(opt, "-ff", "--fail_fast")) {
+            context = NO_CONTEXT;
+            opts_buf->fail_fast = 1;
+        }
+        // Verbosity
+        else if (check_opt(opt, "-v", "--verbose")) {
+            context = NO_CONTEXT;
+
+            if (++i >= opts_size) {
+                return NO_VALUE_TO_VERBOSE;
+            }
+
+            char* next = opts[i]; // The next value in the options string
+            char* end; // For strtol
+
+            errno = 0;
+            long val = strtol(next, &end, /* base */ 10);
+
+            // If an error occured with strtol
+            if (errno != 0) {
+                return STRTOL_ERROR;
+            }
+
+            // No digits were parsed
+            if (end == next) {
+                return INVALID_VALUE_TO_VERBOSE;
+            }
+
+            // Check value is valid
+            if (val < 0 || val > 2) {
+                return INVALID_VALUE_TO_VERBOSE;
+            }
+
+            opts_buf->verbose = val;
+        }
+        // Run the following tests
+        else if (check_opt(opt, "-r", "--run")) {
+            opt_run_seen = 1;
+            context = INCLUDE;
+
+            if (++i >= opts_size) {
+                return NO_VALUE_TO_RUN;
+            }
+
+            int ret = include_test(opts_buf, opts[i]);
+            // If an error occured, exit
+            if (ret != 0) {
+                return ret;
+            }
+        }
+    }
+
+    return NO_ERROR;
 }
