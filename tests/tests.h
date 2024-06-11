@@ -81,6 +81,15 @@ const char* opts_help_str(void);
 void print_opts_help(void);
 
 /**
+ * Returns a message given a parser error code
+ *
+ * @param  err Error code returned by `parse_test_opts`
+ *
+ * @return  Error message corresponding to the given error code
+ */
+const char* str_parse_error(int err);
+
+/**
  * Parse args to create a set of options used by the test runner.
  * Available options are:
  *   - -ff, --fail-fast: Stop running tests after the first failure.
@@ -93,10 +102,10 @@ void print_opts_help(void);
  *   -  -s, --summary: Print only the summary of the test results. (Sets verbosity to 0)
  *   -  -z, --randomize: Run tests in a random order.
  *
- * @param  opts_buf  [description]
- * @param  opts      [description]
- * @param  opts_size [description]
- * @return           [description]
+ * @param  opts_buf  A Test Opts buffer to store the options
+ * @param  opts      An array of strings for options
+ * @param  opts_size The size of the `opts` array.
+ * @return  0 on success, non-zero on sices
  */
 int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size);
 
