@@ -10,6 +10,8 @@
 #define INVALID_VALUE_TO_VERBOSE 4
 #define NO_VALUE_TO_RUN 5
 #define UNKNOWN_TEST_TO_RUN 6
+#define NO_VALUE_TO_EXCLUDE 7
+#define UNKNOWN_TEST_TO_EXCLUDE 8
 
 struct TestSuite {
     Test* tests;
@@ -74,7 +76,11 @@ const char* str_parse_error(int err) {
     case NO_VALUE_TO_RUN:
         return "no value provided to the run option";
     case UNKNOWN_TEST_TO_RUN:
-        return "unknown test specified";
+        return "unknown test specified to run";
+    case NO_VALUE_TO_EXCLUDE:
+        return "no value provided to the exclude option";
+    case UNKNOWN_TEST_TO_EXCLUDE:
+        return "unknown test specified to exclude";
     default:
         errno = EINVAL;
         return "unknown error";
@@ -94,8 +100,26 @@ Test* find_test_by_name(char* name) {
 }
 
 
+// Returns 1 if arr conatains val, 0 otherwise
+inline int _contains(char** arr, size_t size, char* val) {
+    for (size_t i = 0; i < size; i++) {
+        if (strcmp(val, arr[i]) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
 // Add the test with the given name to the options
-int include_test(TestOpts* opts_buf, char* name) {
+// This internal function assumes opts_buf->included array is initialized
+// and has capacity for at least one more element
+inline int include_test(TestOpts* opts_buf, char* name) {
+    // If `name` is repeated, do not add it again
+    if (_contains(opts_buf->included, opts_buf->included_size, name)) {
+        return 0;
+    }
+
     // Ensure the next value is a recognized test function
     if (find_test_by_name(name) == NULL) {
         return UNKNOWN_TEST_TO_RUN;
@@ -103,6 +127,27 @@ int include_test(TestOpts* opts_buf, char* name) {
 
     // If it is, add it to the included tests
     opts_buf->included[opts_buf->included_size++] = name;
+
+    return 0; // Success
+}
+
+
+// Add the test with the given name to the excluded tests
+// This internal function assumes opts_buf->excluded array is initialized
+// and has capacity for at least one more element
+inline int exclude_test(TestOpts* opts_buf, char* name) {
+    // If `name` is repeated, do not add it again
+    if (_contains(opts_buf->excluded, opts_buf->excluded_size, name)) {
+        return 0;
+    }
+
+    // Ensure the next value is a recognized test function
+    if (find_test_by_name(name) == NULL) {
+        return UNKNOWN_TEST_TO_EXCLUDE;
+    }
+
+    // If it is, add it to the included tests
+    opts_buf->excluded[opts_buf->excluded_size++] = name;
 
     return 0; // Success
 }
@@ -128,6 +173,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
         n_tests++;
     }
 
+    // Initially, assume all tests could be included or excluded
     opts_buf->included = malloc(sizeof(char*) * n_tests);
     opts_buf->included_size = 0;
     opts_buf->excluded = malloc(sizeof(char*) * n_tests);
@@ -194,6 +240,20 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             }
 
             int ret = include_test(opts_buf, opts[i]);
+            // If an error occured, exit
+            if (ret != 0) {
+                return ret;
+            }
+        }
+        // Ignore the following tests
+        else if (check_opt(opt, "-x", "--exclude")) {
+            context = EXCLUDE;
+
+            if (++i >= opts_size) {
+                return NO_VALUE_TO_EXCLUDE;
+            }
+
+            int ret = exclude_test(opts_buf, opts[i]);
             // If an error occured, exit
             if (ret != 0) {
                 return ret;
