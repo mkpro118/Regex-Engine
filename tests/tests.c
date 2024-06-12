@@ -12,6 +12,7 @@
 #define UNKNOWN_TEST_TO_RUN 6
 #define NO_VALUE_TO_EXCLUDE 7
 #define UNKNOWN_TEST_TO_EXCLUDE 8
+#define NO_VALUE_TO_OUTPUT_FILE 9
 
 struct TestSuite {
     Test* tests;
@@ -81,6 +82,8 @@ const char* str_parse_error(int err) {
         return "no value provided to the exclude option";
     case UNKNOWN_TEST_TO_EXCLUDE:
         return "unknown test specified to exclude";
+    case NO_VALUE_TO_OUTPUT_FILE:
+        return "no value provided to the output file option";
     default:
         errno = EINVAL;
         return "unknown error";
@@ -258,6 +261,13 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             if (ret != 0) {
                 return ret;
             }
+        }
+        // Output file
+        else if (check_opt(opt, "-o", "--output")) {
+            if (++i >= opts_size) {
+                return NO_VALUE_TO_OUTPUT_FILE;
+            }
+            opts_buf->output_file = opts[i];
         }
     }
 
