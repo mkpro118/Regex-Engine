@@ -7,18 +7,7 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
    //define something for Windows (32-bit and 64-bit, this part is common)
 
-char* strdup(const char* source) {
-    int len = strlen(source);
-    char* dest = malloc(sizeof(char) * (len + 1));
-
-    if (dest == NULL) {
-        return NULL;
-    }
-
-    strncpy(dest, source, len);
-    dest[len] = '\0'; // Nul-terminator
-    return dest;
-}
+char* strdup(const char* source);
 
 #elif __unix__ // all unices not caught above
     // Unix
