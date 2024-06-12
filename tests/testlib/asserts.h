@@ -10,7 +10,7 @@
 
 /* A zero exit code refers to success on all assertions.
    Any other value refers to a failure on at least one assertion. */
-int ASSERTS_EXIT_CODE = 0;
+extern int ASSERTS_EXIT_CODE;
 
 #ifdef FAIL_FAST
 #define ASSERTION_FAILED(fmt, a, b) do {\
