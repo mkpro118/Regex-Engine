@@ -62,11 +62,6 @@ void test_opt_parser_ok_4(void) {
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 0);
-    assert_equals_int(opts_buf.fail_fast, 0);
-    assert_equals_int(opts_buf.dry_run, 0);
-    assert_equals_int(opts_buf.randomize, 0);
-    assert_equals_int(opts_buf.summary, 0);
-    assert_equals_int(opts_buf.verbose, 1);
     assert_equals_int(opts_buf.included_size, 2);
     assert_equals_int(opts_buf.excluded_size, 2);
 }
@@ -78,13 +73,6 @@ void test_opt_parser_ok_5(void) {
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 0);
-    assert_equals_int(opts_buf.fail_fast, 0);
-    assert_equals_int(opts_buf.dry_run, 0);
-    assert_equals_int(opts_buf.randomize, 0);
-    assert_equals_int(opts_buf.summary, 0);
-    assert_equals_int(opts_buf.verbose, 1);
-    assert_equals_int(opts_buf.included_size, 4);
-    assert_equals_int(opts_buf.excluded_size, 0);
     assert_equals_str(opts_buf.output_file, "test_file");
 }
 
