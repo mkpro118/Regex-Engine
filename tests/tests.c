@@ -207,6 +207,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
     for (size_t i = 0; i < opts_size; i++) {
         char* opt = opts[i];
 
+        /* Boolean options */
         // Fail Fast
         if (check_opt(opt, "-ff", "--fail_fast")) {
             context = NO_CONTEXT;
@@ -223,6 +224,14 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             opts_buf->summary = 1;
             opts_buf->verbose = 0;
         }
+        // Randomize
+        else if (check_opt(opt, "-z", "--randomize")) {
+            context = NO_CONTEXT;
+            opts_buf->randomize = 1;
+        }
+
+        /* Numeric options */
+
         // Verbosity
         else if (check_opt(opt, "-v", "--verbose")) {
             context = NO_CONTEXT;
@@ -258,6 +267,41 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
 
             opts_buf->verbose = val;
         }
+        // Timeout
+        else if (check_opt(opt, "-t", "--timeout")) {
+            context = NO_CONTEXT;
+
+            if (++i >= opts_size) {
+                return NO_VALUE_TO_TIMEOUT;
+            }
+
+            char* next = opts[i]; // The next value in the options string
+            char* end; // For strtol
+
+            errno = 0;
+            long val = strtol(next, &end, STRTOL_BASE_OR_RADIX);
+
+            // If an error occured with strtol
+            if (errno != 0) {
+                return STRTOL_ERROR;
+            }
+
+            // No digits were parsed
+            if (end == next) {
+                return INVALID_VALUE_TO_TIMEOUT;
+            }
+
+            // Ensure timeout is not negative
+            if (val < 0) {
+                return INVALID_VALUE_TO_TIMEOUT;
+            }
+
+            // All good
+            opts_buf->timeout = val;
+        }
+
+        /* String options */
+
         // Run the following tests
         else if (check_opt(opt, "-r", "--run")) {
             opt_run_seen = 1;
@@ -295,38 +339,24 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
                 return NO_VALUE_TO_OUTPUT_FILE;
             }
             opts_buf->output_file = opts[i];
-        }
-        // Timeout
-        else if (check_opt(opt, "-t", "--timeout")) {
-            context = NO_CONTEXT;
+        } else {
+            int ret; // Return value of include_test/exclude_test
 
-            if (++i >= opts_size) {
-                return NO_VALUE_TO_TIMEOUT;
+            switch (context) {
+            case INCLUDE:
+                ret = include_test(opts_buf, opt);
+                break;
+            case EXCLUDE:
+                ret = exclude_test(opts_buf, opt);
+                break;
+            case NO_CONTEXT:
+                return UNSUPPORTED_OPTION;
             }
 
-            char* next = opts[i]; // The next value in the options string
-            char* end; // For strtol
-
-            errno = 0;
-            long val = strtol(next, &end, STRTOL_BASE_OR_RADIX);
-
-            // If an error occured with strtol
-            if (errno != 0) {
-                return STRTOL_ERROR;
+            // If include/exclude fails, exit
+            if (ret != 0) {
+                return ret;
             }
-
-            // No digits were parsed
-            if (end == next) {
-                return INVALID_VALUE_TO_TIMEOUT;
-            }
-
-            // Ensure timeout is not negative
-            if (val < 0) {
-                return INVALID_VALUE_TO_TIMEOUT;
-            }
-
-            // All good
-            opts_buf->timeout = val;
         }
     }
 
