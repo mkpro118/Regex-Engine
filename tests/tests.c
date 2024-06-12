@@ -17,6 +17,7 @@
 #define NO_VALUE_TO_OUTPUT_FILE 9
 #define NO_VALUE_TO_TIMEOUT 10
 #define INVALID_VALUE_TO_TIMEOUT 11
+#define SUMMARY_AND_VERBOSE 12
 
 struct TestSuite {
     Test* tests;
@@ -31,6 +32,7 @@ static const TestOpts defaultOpts = {
     .randomize = 0,
     .dry_run = 0,
     .timeout = 0,
+    .summary = 0,
     .included = NULL,
     .included_size = 0,
     .excluded = NULL,
@@ -92,6 +94,8 @@ const char* str_parse_error(int err) {
         return "no value provided to the timeout option";
     case INVALID_VALUE_TO_TIMEOUT:
         return "invalid value provided to the timeout option";
+    case SUMMARY_AND_VERBOSE:
+        return "--summary and --verbose cannot be specifed together";
     default:
         errno = EINVAL;
         return "unknown error";
@@ -198,9 +202,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
         NO_CONTEXT,
         INCLUDE,
         EXCLUDE,
-    };
-
-    enum parse_contexts context = NO_CONTEXT;
+    } context = NO_CONTEXT;
 
     for (size_t i = 0; i < opts_size; i++) {
         char* opt = opts[i];
@@ -210,9 +212,24 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             context = NO_CONTEXT;
             opts_buf->fail_fast = 1;
         }
+        // Dry Run
+        else if (check_opt(opt, "-d", "--dry-run")) {
+            context = NO_CONTEXT;
+            opts_buf->dry_run = 1;
+        }
+        // Summary only
+        else if (check_opt(opt, "-s", "--summary")) {
+            context = NO_CONTEXT;
+            opts_buf->summary = 1;
+            opts_buf->verbose = 0;
+        }
         // Verbosity
         else if (check_opt(opt, "-v", "--verbose")) {
             context = NO_CONTEXT;
+
+            if (opts_buf->summary == 1) {
+                return SUMMARY_AND_VERBOSE;
+            }
 
             if (++i >= opts_size) {
                 return NO_VALUE_TO_VERBOSE;
