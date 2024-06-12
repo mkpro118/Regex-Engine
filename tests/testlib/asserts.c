@@ -1,0 +1,1 @@
+int ASSERTS_EXIT_CODE = 0;
