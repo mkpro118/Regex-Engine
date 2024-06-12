@@ -116,7 +116,7 @@ Test* find_test_by_name(char* name) {
 
 
 // Returns 1 if arr conatains val, 0 otherwise
-inline int _contains(char** arr, size_t size, char* val) {
+static inline int _contains(char** arr, size_t size, char* val) {
     for (size_t i = 0; i < size; i++) {
         if (strcmp(val, arr[i]) == 0) {
             return 1;
@@ -129,7 +129,7 @@ inline int _contains(char** arr, size_t size, char* val) {
 // Add the test with the given name to the options
 // This internal function assumes opts_buf->included array is initialized
 // and has capacity for at least one more element
-inline int include_test(TestOpts* opts_buf, char* name) {
+static inline int include_test(TestOpts* opts_buf, char* name) {
     // If `name` is repeated, do not add it again
     if (_contains(opts_buf->included, opts_buf->included_size, name)) {
         return 0;
@@ -150,7 +150,7 @@ inline int include_test(TestOpts* opts_buf, char* name) {
 // Add the test with the given name to the excluded tests
 // This internal function assumes opts_buf->excluded array is initialized
 // and has capacity for at least one more element
-inline int exclude_test(TestOpts* opts_buf, char* name) {
+static inline int exclude_test(TestOpts* opts_buf, char* name) {
     // If `name` is repeated, do not add it again
     if (_contains(opts_buf->excluded, opts_buf->excluded_size, name)) {
         return 0;
@@ -209,7 +209,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
 
         /* Boolean options */
         // Fail Fast
-        if (check_opt(opt, "-ff", "--fail_fast")) {
+        if (check_opt(opt, "-ff", "--fail-fast")) {
             context = NO_CONTEXT;
             opts_buf->fail_fast = 1;
         }
