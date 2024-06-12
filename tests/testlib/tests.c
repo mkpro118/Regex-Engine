@@ -106,7 +106,7 @@ const char* str_parse_error(int err) {
 // Find a test given it's name
 Test* find_test_by_name(char* name) {
     Test* test_ptr = tests;
-    while (test_ptr != NULL) {
+    while (test_ptr->name != NULL) {
         if (strcmp(name, test_ptr->name) == 0)
             return test_ptr;
         test_ptr++;
