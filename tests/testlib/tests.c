@@ -139,13 +139,15 @@ static inline int include_test(TestOpts* opts_buf, char* name) {
         return 0;
     }
 
+    Test* test_ptr;
+
     // Ensure the next value is a recognized test function
-    if (find_test_by_name(name) == NULL) {
+    if ((test_ptr = find_test_by_name(name)) == NULL) {
         return UNKNOWN_TEST_TO_RUN;
     }
 
     // If it is, add it to the included tests
-    opts_buf->included[opts_buf->included_size++] = name;
+    opts_buf->included[opts_buf->included_size++] = test_ptr->name;
 
     return 0; // Success
 }
@@ -160,13 +162,14 @@ static inline int exclude_test(TestOpts* opts_buf, char* name) {
         return 0;
     }
 
+    Test* test_ptr;
     // Ensure the next value is a recognized test function
-    if (find_test_by_name(name) == NULL) {
+    if ((test_ptr = find_test_by_name(name)) == NULL) {
         return UNKNOWN_TEST_TO_EXCLUDE;
     }
 
-    // If it is, add it to the included tests
-    opts_buf->excluded[opts_buf->excluded_size++] = name;
+    // If it is, add it to the excluded tests
+    opts_buf->excluded[opts_buf->excluded_size++] = test_ptr->name;
 
     return 0; // Success
 }
