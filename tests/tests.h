@@ -58,6 +58,7 @@ struct TestOpts {
     unsigned char verbose: 2;
     unsigned char randomize: 1;
     unsigned char dry_run: 1;
+    unsigned char summary: 1;
 
     unsigned int timeout;
 
