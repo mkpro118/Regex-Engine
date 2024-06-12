@@ -28,7 +28,7 @@ struct TestSuite {
 };
 
 // The default options for any test suite
-static const TestOpts defaultOpts = {
+static const TestOpts DEFAULT_OPTS = {
     .fail_fast = 0,
     .parallel = 0,
     .verbose = 1,
@@ -216,7 +216,7 @@ int include_selective(TestOpts* opts_buf) {
 // Parse args to create a set of options used by the test runner.
 int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
     // Clear out old options
-    *opts_buf = defaultOpts;
+    *opts_buf = DEFAULT_OPTS;
 
     if (NULL == opts || 0 == opts_size) {
         return NO_ERROR;
@@ -456,5 +456,5 @@ void free_opts(TestOpts* opts) {
     free(opts->included);
     free(opts->excluded);
     free(opts->output_file);
-    *opts = defaultOpts;
+    *opts = DEFAULT_OPTS;
 }
