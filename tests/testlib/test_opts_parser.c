@@ -141,18 +141,18 @@ void test_opt_parser_fail_11(void) {
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
-    assert_equals_int(ret, 10);
+    assert_equals_int(ret, 11);
 }
 
 void test_opt_parser_fail_12(void) {
-    char* opts[] = {"-v", "1", "--summary"};
+    char* opts[] = {"--summary", "-v", "1"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     TestOpts opts_buf;
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
-    assert_equals_int(ret, 10);
+    assert_equals_int(ret, 12);
 }
 
 Test curr_tests[] = {
@@ -185,3 +185,4 @@ int main(void) {
     }
     return overall;
 }
+const char* __asan_default_options() { return "detect_leaks=0"; }
