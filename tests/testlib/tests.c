@@ -2,6 +2,7 @@
 
 #include "tests.h"
 #include "asserts.h"
+#include "portability.h"
 
 #define STRTOL_BASE_OR_RADIX 10
 
@@ -384,7 +385,10 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             if (++i >= opts_size) {
                 free_and_return(opts_buf, NO_VALUE_TO_OUTPUT_FILE);
             }
-            opts_buf->output_file = opts[i];
+
+            // We will make a copy of this
+            // as it may or may not be in static memory
+            opts_buf->output_file = strdup(opts[i]);
         } else {
             int ret; // Return value of include_test/exclude_test
 
@@ -444,4 +448,13 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
     }
 
     return NO_ERROR;
+}
+
+
+// Release internally allocated memory by the options structure
+void free_opts(TestOpts* opts) {
+    free(opts->included);
+    free(opts->excluded);
+    free(opts->output_file);
+    *opts = defaultOpts;
 }
