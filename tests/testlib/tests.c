@@ -202,6 +202,7 @@ int include_selective(TestOpts* opts_buf) {
         }
         test_ptr++;
     }
+    return idx;
 }
 
 // Macro for option string comparison
