@@ -26,6 +26,68 @@ void test_opt_parser_ok_1(void) {
     assert_equals_int(ret, 0);
 }
 
+void test_opt_parser_ok_2(void) {
+    char* opts[] = {"--fail-fast", "--dry-run", "--randomize"};
+    size_t opts_size = sizeof(opts) / sizeof(char*);
+
+    int ret = parse_test_opts(&opts_buf, opts, opts_size);
+
+    assert_equals_int(ret, 0);
+    assert_equals_int(opts_buf.fail_fast, 1);
+    assert_equals_int(opts_buf.dry_run, 1);
+    assert_equals_int(opts_buf.verbose, 1);
+    assert_equals_int(opts_buf.randomize, 1);
+}
+
+void test_opt_parser_ok_3(void) {
+    char* opts[] = {"--fail-fast", "--summary"};
+    size_t opts_size = sizeof(opts) / sizeof(char*);
+
+    int ret = parse_test_opts(&opts_buf, opts, opts_size);
+
+    assert_equals_int(ret, 0);
+    assert_equals_int(opts_buf.fail_fast, 1);
+    assert_equals_int(opts_buf.dry_run, 0);
+    assert_equals_int(opts_buf.randomize, 0);
+    assert_equals_int(opts_buf.summary, 1);
+    assert_equals_int(opts_buf.verbose, 0);
+    assert_equals_int(opts_buf.included_size, 4);
+    assert_equals_int(opts_buf.excluded_size, 0);
+}
+
+void test_opt_parser_ok_4(void) {
+    char* opts[] = {"-x", "c", "b"};
+    size_t opts_size = sizeof(opts) / sizeof(char*);
+
+    int ret = parse_test_opts(&opts_buf, opts, opts_size);
+
+    assert_equals_int(ret, 0);
+    assert_equals_int(opts_buf.fail_fast, 0);
+    assert_equals_int(opts_buf.dry_run, 0);
+    assert_equals_int(opts_buf.randomize, 0);
+    assert_equals_int(opts_buf.summary, 0);
+    assert_equals_int(opts_buf.verbose, 1);
+    assert_equals_int(opts_buf.included_size, 2);
+    assert_equals_int(opts_buf.excluded_size, 2);
+}
+
+void test_opt_parser_ok_5(void) {
+    char* opts[] = {"-o", "test_file"};
+    size_t opts_size = sizeof(opts) / sizeof(char*);
+
+    int ret = parse_test_opts(&opts_buf, opts, opts_size);
+
+    assert_equals_int(ret, 0);
+    assert_equals_int(opts_buf.fail_fast, 0);
+    assert_equals_int(opts_buf.dry_run, 0);
+    assert_equals_int(opts_buf.randomize, 0);
+    assert_equals_int(opts_buf.summary, 0);
+    assert_equals_int(opts_buf.verbose, 1);
+    assert_equals_int(opts_buf.included_size, 4);
+    assert_equals_int(opts_buf.excluded_size, 0);
+    assert_equals_str(opts_buf.output_file, "test_file");
+}
+
 void test_opt_parser_fail_1(void) {
     char* opts[] = {"--fail-fast", "bad", "--dry-run", "--randomize"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -128,6 +190,10 @@ void test_opt_parser_fail_12(void) {
 
 Test curr_tests[] = {
     {.name="test_opt_parser_ok_1", .func=test_opt_parser_ok_1},
+    {.name="test_opt_parser_ok_2", .func=test_opt_parser_ok_2},
+    {.name="test_opt_parser_ok_3", .func=test_opt_parser_ok_3},
+    {.name="test_opt_parser_ok_4", .func=test_opt_parser_ok_4},
+    {.name="test_opt_parser_ok_5", .func=test_opt_parser_ok_5},
     {.name="test_opt_parser_fail_1", .func=test_opt_parser_fail_1},
     {.name="test_opt_parser_fail_3", .func=test_opt_parser_fail_3},
     {.name="test_opt_parser_fail_4", .func=test_opt_parser_fail_4},
