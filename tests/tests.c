@@ -3,6 +3,8 @@
 #include "tests.h"
 #include "asserts.h"
 
+#define STRTOL_BASE_OR_RADIX 10
+
 #define NO_ERROR 0
 #define UNSUPPORTED_OPTION 1
 #define STRTOL_ERROR 2
@@ -13,6 +15,8 @@
 #define NO_VALUE_TO_EXCLUDE 7
 #define UNKNOWN_TEST_TO_EXCLUDE 8
 #define NO_VALUE_TO_OUTPUT_FILE 9
+#define NO_VALUE_TO_TIMEOUT 10
+#define INVALID_VALUE_TO_TIMEOUT 11
 
 struct TestSuite {
     Test* tests;
@@ -84,6 +88,10 @@ const char* str_parse_error(int err) {
         return "unknown test specified to exclude";
     case NO_VALUE_TO_OUTPUT_FILE:
         return "no value provided to the output file option";
+    case NO_VALUE_TO_TIMEOUT:
+        return "no value provided to the timeout option";
+    case INVALID_VALUE_TO_TIMEOUT:
+        return "invalid value provided to the timeout option";
     default:
         errno = EINVAL;
         return "unknown error";
@@ -214,7 +222,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             char* end; // For strtol
 
             errno = 0;
-            long val = strtol(next, &end, /* base */ 10);
+            long val = strtol(next, &end, STRTOL_BASE_OR_RADIX);
 
             // If an error occured with strtol
             if (errno != 0) {
@@ -264,10 +272,44 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
         }
         // Output file
         else if (check_opt(opt, "-o", "--output")) {
+            context = NO_CONTEXT;
+
             if (++i >= opts_size) {
                 return NO_VALUE_TO_OUTPUT_FILE;
             }
             opts_buf->output_file = opts[i];
+        }
+        // Timeout
+        else if (check_opt(opt, "-t", "--timeout")) {
+            context = NO_CONTEXT;
+
+            if (++i >= opts_size) {
+                return NO_VALUE_TO_TIMEOUT;
+            }
+
+            char* next = opts[i]; // The next value in the options string
+            char* end; // For strtol
+
+            errno = 0;
+            long val = strtol(next, &end, STRTOL_BASE_OR_RADIX);
+
+            // If an error occured with strtol
+            if (errno != 0) {
+                return STRTOL_ERROR;
+            }
+
+            // No digits were parsed
+            if (end == next) {
+                return INVALID_VALUE_TO_TIMEOUT;
+            }
+
+            // Ensure timeout is not negative
+            if (val < 0) {
+                return INVALID_VALUE_TO_TIMEOUT;
+            }
+
+            // All good
+            opts_buf->timeout = val;
         }
     }
 
