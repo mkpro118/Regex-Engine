@@ -177,15 +177,16 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
     // Clear out old options
     *opts_buf = defaultOpts;
 
-    if (opts == NULL || opts_size == 0) {
+    if (NULL == opts || 0 == opts_size) {
         return NO_ERROR;
     }
 
     // Determine the total number of tests
     Test* test_ptr = tests;
     size_t n_tests = 0;
-    while (test_ptr++ != NULL) {
+    while (test_ptr->name != NULL) {
         n_tests++;
+        test_ptr++;
     }
 
     // Initially, assume all tests could be included or excluded
