@@ -172,6 +172,34 @@ static inline int exclude_test(TestOpts* opts_buf, char* name) {
 }
 
 
+// Adds all the tests to the suite assuming no test is excluded
+// Assumes enough memory has been allocated appropriately
+// This is an optimized version of `include_selective`, which adds checks to
+// filter excluded tests
+int include_all_tests(TestOpts* opts_buf) {
+    Test* test_ptr = tests;
+    size_t idx = 0;
+    while (test_ptr->name != NULL) {
+        opts_buf->included[idx++] = test_ptr->name;
+        test_ptr++;
+    }
+    return idx;
+}
+
+
+// Adds all non-excluded tests.
+// Assumes enough memory has been allocated appropriately
+int include_selective(TestOpts* opts_buf) {
+    Test* test_ptr = tests;
+    size_t idx = 0;
+    while (test_ptr->name != NULL) {
+        if (!_contains(opts_buf->excluded, opts_buf->excluded_size, test_ptr->name)) {
+            opts_buf->included[idx++] = test_ptr->name;
+        }
+        test_ptr++;
+    }
+}
+
 // Macro for option string comparison
 #define check_opt(var, shorthand, option) (strcmp(var, shorthand) == 0 || strcmp(var, option) == 0)
 
