@@ -95,7 +95,7 @@ const char* str_parse_error(int err) {
     case INVALID_VALUE_TO_TIMEOUT:
         return "invalid value provided to the timeout option";
     case SUMMARY_AND_VERBOSE:
-        return "--summary and --verbose cannot be specifed together";
+        return "--summary and --verbose cannot be specified together";
     default:
         errno = EINVAL;
         return "unknown error";
