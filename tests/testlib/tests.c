@@ -411,14 +411,33 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
         } else {
             opts_buf->included_size = include_selective(opts_buf);
         }
+    }
 
-        char** temp = realloc(opts_buf->included, sizeof(char*) * opts_buf->included_size);
+    // Tight layout
+    char** temp;
 
+    // Resize memory allocated for included tests
+    if (opts_buf->included_size == 0) {
+        free(opts_buf->included);
+        opts_buf->included = NULL;
+    } else {
+        temp = realloc(opts_buf->included, sizeof(char*) * opts_buf->included_size);
         if (temp == NULL) {
             free_and_return(opts_buf, ALLOCATOR_FAILED);
         }
-
         opts_buf->included = temp;
+    }
+
+    // Resize memory allocated for excluded tests
+    if (opts_buf->excluded_size == 0) {
+        free(opts_buf->excluded);
+        opts_buf->excluded = NULL;
+    } else {
+        temp = realloc(opts_buf->excluded, sizeof(char*) * opts_buf->excluded_size);
+        if (temp == NULL) {
+            free_and_return(opts_buf, ALLOCATOR_FAILED);
+        }
+        opts_buf->excluded = temp;
     }
 
     return NO_ERROR;
