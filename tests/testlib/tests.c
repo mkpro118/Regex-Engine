@@ -220,10 +220,6 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
     // Clear out old options
     *opts_buf = DEFAULT_OPTS;
 
-    if (NULL == opts || 0 == opts_size) {
-        return NO_ERROR;
-    }
-
     // Determine the total number of tests
     Test* test_ptr = tests;
     size_t n_tests = 0;
@@ -236,6 +232,12 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
     opts_buf->included = malloc(sizeof(char*) * n_tests);
     if (opts_buf->included == NULL) {
         free_and_return(opts_buf, ALLOCATOR_FAILED);
+    }
+
+    // In case options are not provided, use defaults and include all tests
+    if (NULL == opts || 0 == opts_size) {
+        opts_buf->included_size = include_all_tests(opts_buf);
+        return NO_ERROR;
     }
 
     opts_buf->excluded = malloc(sizeof(char*) * n_tests);
