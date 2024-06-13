@@ -20,6 +20,29 @@ static inline void after_each(void) {
     free_opts(&opts_buf);
 }
 
+// Tests that the parser sets default options on no arguments
+void test_opt_parser_ok_0(void) {
+    int ret;
+    ret = parse_test_opts(&opts_buf, NULL, 0);
+    assert_equals_int(ret, 0);
+
+    char* expected[] = {"a", "b", "c", "d"};
+
+    assert_equals_int(opts_buf.fail_fast, 0);
+    assert_equals_int(opts_buf.parallel, 0);
+    assert_equals_int(opts_buf.verbose, 1);
+    assert_equals_int(opts_buf.randomize, 0);
+    assert_equals_int(opts_buf.dry_run, 0);
+    assert_equals_int(opts_buf.summary, 0);
+    assert_equals_int(opts_buf.timeout, 0);
+    assert_equals_int(opts_buf.included_size, 4);
+    assert_is_not_null(opts_buf.included);
+    assert_equals_str_array_unordered(opts_buf.included, expected, 4);
+    assert_equals_int(opts_buf.excluded_size, 0);
+    assert_is_null(opts_buf.excluded);
+    assert_is_null(opts_buf.output_file);
+}
+
 // Tests that parser works successfully on good input
 // Options tested: --fail-fast/-ff, --dry-run/-d, --randomize/-z
 void test_opt_parser_ok_1(void) {
@@ -245,6 +268,7 @@ void test_opt_parser_fail_12(void) {
 }
 
 Test curr_tests[] = {
+    {.name="test_opt_parser_ok_0", .func=test_opt_parser_ok_0},
     {.name="test_opt_parser_ok_1", .func=test_opt_parser_ok_1},
     {.name="test_opt_parser_ok_2", .func=test_opt_parser_ok_2},
     {.name="test_opt_parser_ok_3", .func=test_opt_parser_ok_3},
