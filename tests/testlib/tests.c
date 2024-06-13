@@ -23,7 +23,7 @@
 #define ALLOCATOR_FAILED 13
 
 struct TestSuite {
-    Test* tests;
+    Test** tests;
     size_t n_tests;
     TestOpts* opts;
 };
@@ -461,4 +461,52 @@ void free_opts(TestOpts* opts) {
     free(opts->excluded);
     free(opts->output_file);
     *opts = DEFAULT_OPTS;
+}
+
+
+// Macro to release resources on failure and return a failure code
+#define free_suite_and_return(suite_ptr) {\
+    free_test_suite((suite_ptr));\
+    return NULL;\
+}
+
+
+// Creates a test suite containing a set of test functions
+// Returns NULL if no tests are included
+TestSuite const* create_test_suite(TestOpts* opts) {
+    TestSuite* suite = NULL;
+
+    // Cannot create a test suite with no included tests
+    if (opts->included_size == 0 || opts->included == NULL) {
+        return NULL;
+    }
+
+    // If allocation fails, return NULL
+    if ((suite = malloc(sizeof(TestSuite))) == NULL) {
+        return NULL;
+    }
+
+    // Allocate memory for the array of tests in the suite
+    suite->tests = malloc(sizeof(Test*) * opts->included_size);
+    if (suite->tests == NULL) {
+        free_suite_and_return(suite);
+    }
+
+    // Include tests into the suite
+    for (size_t i = 0; i < opts->included_size; i++) {
+        Test* test_ptr = find_test_by_name(opts->included[i]);
+
+        // If an included test is not found, this is an error.
+        // This should ideally be caught by the options parser, but if
+        // opts was created manually, this will prevent further errors
+        if (test_ptr == NULL) {
+            free_suite_and_return(suite);
+        }
+
+        suite->tests[suite->n_tests++] = test_ptr;
+    }
+
+    suite->opts = opts;
+
+    return suite;
 }
