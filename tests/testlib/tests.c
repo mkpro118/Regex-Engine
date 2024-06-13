@@ -1,5 +1,7 @@
 #include <errno.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "tests.h"
 #include "asserts.h"
@@ -27,6 +29,24 @@ struct TestSuite {
     size_t n_tests;
     TestOpts* opts;
 };
+
+enum TestResult {
+    ABORTED,
+    FAILURE,
+    SKIPPED,
+    SUCCESS,
+    TIMEOUT,
+};
+
+typedef struct TestResults {
+    Test* test;
+    enum TestResult result;
+} TestResults;
+
+typedef struct TestSuiteResults {
+    TestSuite* suite;
+    TestResults* results;
+} TestSuiteResults;
 
 // The default options for any test suite
 static const TestOpts DEFAULT_OPTS = {
@@ -541,4 +561,69 @@ void free_test_suite(TestSuite* suite) {
 
     // Release memory allocated for the TestSuite structure
     free(suite);
+}
+
+
+// Display dry run information
+// Assumes suite is a well formed object, and handle is valid
+void dry_run(TestSuite* suite, FILE* handle) {
+    size_t size = suite->opts->included_size;
+    if (size == 0) {
+        fprintf(handle, "There are no tests to be run in this suite.\n");
+    } else {
+        fprintf(handle, "This suite will run the following tests (%d):\n", suite->opts->included_size);
+
+        for (size_t i = 0; i < suite->opts->included_size; i++) {
+
+        }
+    }
+}
+
+// Runs all included tests in parallel
+// Assumes suite is a well formed object, and handle is valid
+TestResults run_tests_parallel(TestSuite* suite, FILE* handle) {
+
+}
+
+// Runs all included tests sequentially
+// Assumes suite is a well formed object, and handle is valid
+TestResults run_tests_sequential(TestSuite* suite, FILE* handle) {
+}
+
+// Runs the set of tests specified by the current test suite
+int run_test_suite(TestSuite* suite) {
+    // Assume that options were given
+    unsigned char opts_missing = 0;
+
+    if (suite->opts == NULL) { // If options were not provided, use defaults
+        opts_missing = 1; // options were not given
+        suite->opts = malloc(sizeof(TestOpts));
+        parse_test_opts(suite->opts, NULL, 0);
+    }
+
+    FILE* handle;
+    if (suite->opts->output_file != NULL) {
+        handle = fopen(suite->opts->output_file, "w");
+    } else {
+        handle = stdout;
+    }
+
+    if (suite->opts->dry_run) {
+        dry_run(suite, handle);
+        return 0;
+    }
+
+    if (suite->opts->parallel) {
+        run_tests_parallel(suite, handle);
+    } else {
+        run_tests_sequential(suite, handle);
+    }
+
+    // If options were not given, we must have allocated them
+    // Release those resources now to prevent memory leaks
+    if (opts_missing) {
+        free_opts(suite->opts); // This doesn't free the opts itself
+        free(suite->opts); // So free it here
+        suite->opts = NULL; // Reset memory
+    }
 }
