@@ -457,8 +457,19 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
 
 // Release internally allocated memory by the options structure
 void free_opts(TestOpts* opts) {
-    free(opts->included);
-    free(opts->excluded);
+    if (opts->included != NULL) {
+        // Reset memory for the included tests
+        memset(opts->included, 0, sizeof(char*) * opts->included_size);
+        free(opts->included);
+    }
+
+    if (opts->excluded != NULL) {
+        // Reset memory for the excluded tests
+        memset(opts->excluded, 0, sizeof(char*) * opts->excluded_size);
+        free(opts->excluded);
+    }
+
+    // Reset for output_file happens using the default ops
     free(opts->output_file);
     *opts = DEFAULT_OPTS;
 }
@@ -509,4 +520,27 @@ TestSuite const* create_test_suite(TestOpts* opts) {
     suite->opts = opts;
 
     return suite;
+}
+
+
+// Release the memory allocated for the given test suite
+void free_test_suite(TestSuite* suite) {
+    if (suite == NULL) {
+        return;
+    }
+
+    // Release memory allocated for Tests
+    if (suite->tests != NULL) {
+        memset(suite->tests, 0, sizeof(Test*) * suite->n_tests);
+        free(suite->tests);
+    }
+
+    // Release memory allocated for options
+    free_opts(suite->opts);
+
+    // Reset memory to zeros
+    *suite = (TestSuite) {0};
+
+    // Release memory allocated for the TestSuite structure
+    free(suite);
 }
