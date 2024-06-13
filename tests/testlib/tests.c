@@ -524,6 +524,7 @@ TestSuite const* create_test_suite(TestOpts* opts) {
 
 
 // Release the memory allocated for the given test suite
+// Does NOT deallocate the associated TestOpts
 void free_test_suite(TestSuite* suite) {
     if (suite == NULL) {
         return;
@@ -534,9 +535,6 @@ void free_test_suite(TestSuite* suite) {
         memset(suite->tests, 0, sizeof(Test*) * suite->n_tests);
         free(suite->tests);
     }
-
-    // Release memory allocated for options
-    free_opts(suite->opts);
 
     // Reset memory to zeros
     *suite = (TestSuite) {0};
