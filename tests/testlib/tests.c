@@ -210,7 +210,7 @@ int include_selective(TestOpts* opts_buf) {
 #define check_opt(var, shorthand, option) (strcmp(var, shorthand) == 0 || strcmp(var, option) == 0)
 
 // Macro to release resources on failure and return a failure code
-#define free_and_return(opt_ptr, exit_code) {\
+#define free_opts_and_return(opt_ptr, exit_code) {\
     free_opts((opt_ptr));\
     return (exit_code);\
 }
@@ -231,7 +231,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
     // Initially, assume all tests could be included or excluded
     opts_buf->included = malloc(sizeof(char*) * n_tests);
     if (opts_buf->included == NULL) {
-        free_and_return(opts_buf, ALLOCATOR_FAILED);
+        free_opts_and_return(opts_buf, ALLOCATOR_FAILED);
     }
 
     // In case options are not provided, use defaults and include all tests
@@ -242,7 +242,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
 
     opts_buf->excluded = malloc(sizeof(char*) * n_tests);
     if (opts_buf->excluded == NULL) {
-        free_and_return(opts_buf, ALLOCATOR_FAILED);
+        free_opts_and_return(opts_buf, ALLOCATOR_FAILED);
     }
 
     // If the run option is not provided,
@@ -288,11 +288,11 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             context = NO_CONTEXT;
 
             if (opts_buf->summary == 1) {
-                free_and_return(opts_buf, SUMMARY_AND_VERBOSE);
+                free_opts_and_return(opts_buf, SUMMARY_AND_VERBOSE);
             }
 
             if (++i >= opts_size) {
-                free_and_return(opts_buf, NO_VALUE_TO_VERBOSE);
+                free_opts_and_return(opts_buf, NO_VALUE_TO_VERBOSE);
             }
 
             char* next = opts[i]; // The next value in the options string
@@ -303,17 +303,17 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
 
             // If an error occured with strtol
             if (errno != 0) {
-                free_and_return(opts_buf, STRTOL_ERROR);
+                free_opts_and_return(opts_buf, STRTOL_ERROR);
             }
 
             // No digits were parsed
             if (end == next) {
-                free_and_return(opts_buf, INVALID_VALUE_TO_VERBOSE);
+                free_opts_and_return(opts_buf, INVALID_VALUE_TO_VERBOSE);
             }
 
             // Check value is valid
             if (val < 0 || val > 2) {
-                free_and_return(opts_buf, INVALID_VALUE_TO_VERBOSE);
+                free_opts_and_return(opts_buf, INVALID_VALUE_TO_VERBOSE);
             }
 
             opts_buf->verbose = val;
@@ -323,7 +323,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             context = NO_CONTEXT;
 
             if (++i >= opts_size) {
-                free_and_return(opts_buf, NO_VALUE_TO_TIMEOUT);
+                free_opts_and_return(opts_buf, NO_VALUE_TO_TIMEOUT);
             }
 
             char* next = opts[i]; // The next value in the options string
@@ -334,17 +334,17 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
 
             // If an error occured with strtol
             if (errno != 0) {
-                free_and_return(opts_buf, STRTOL_ERROR);
+                free_opts_and_return(opts_buf, STRTOL_ERROR);
             }
 
             // No digits were parsed
             if (end == next) {
-                free_and_return(opts_buf, INVALID_VALUE_TO_TIMEOUT);
+                free_opts_and_return(opts_buf, INVALID_VALUE_TO_TIMEOUT);
             }
 
             // Ensure timeout is not negative
             if (val < 0) {
-                free_and_return(opts_buf, INVALID_VALUE_TO_TIMEOUT);
+                free_opts_and_return(opts_buf, INVALID_VALUE_TO_TIMEOUT);
             }
 
             // All good
@@ -359,13 +359,13 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             context = INCLUDE;
 
             if (++i >= opts_size) {
-                free_and_return(opts_buf, NO_VALUE_TO_RUN);
+                free_opts_and_return(opts_buf, NO_VALUE_TO_RUN);
             }
 
             int ret = include_test(opts_buf, opts[i]);
             // If an error occured, exit
             if (ret != 0) {
-                free_and_return(opts_buf, ret);
+                free_opts_and_return(opts_buf, ret);
             }
         }
         // Ignore the following tests
@@ -373,13 +373,13 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             context = EXCLUDE;
 
             if (++i >= opts_size) {
-                free_and_return(opts_buf, NO_VALUE_TO_EXCLUDE);
+                free_opts_and_return(opts_buf, NO_VALUE_TO_EXCLUDE);
             }
 
             int ret = exclude_test(opts_buf, opts[i]);
             // If an error occured, exit
             if (ret != 0) {
-                free_and_return(opts_buf, ret);
+                free_opts_and_return(opts_buf, ret);
             }
         }
         // Output file
@@ -387,7 +387,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             context = NO_CONTEXT;
 
             if (++i >= opts_size) {
-                free_and_return(opts_buf, NO_VALUE_TO_OUTPUT_FILE);
+                free_opts_and_return(opts_buf, NO_VALUE_TO_OUTPUT_FILE);
             }
 
             // We will make a copy of this
@@ -404,12 +404,12 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
                 ret = exclude_test(opts_buf, opt);
                 break;
             case NO_CONTEXT:
-                free_and_return(opts_buf, UNSUPPORTED_OPTION);
+                free_opts_and_return(opts_buf, UNSUPPORTED_OPTION);
             }
 
             // If include/exclude fails, exit
             if (ret != 0) {
-                free_and_return(opts_buf,  ret);
+                free_opts_and_return(opts_buf,  ret);
             }
         }
     }
@@ -434,7 +434,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
     } else {
         temp = realloc(opts_buf->included, sizeof(char*) * opts_buf->included_size);
         if (temp == NULL) {
-            free_and_return(opts_buf, ALLOCATOR_FAILED);
+            free_opts_and_return(opts_buf, ALLOCATOR_FAILED);
         }
         opts_buf->included = temp;
     }
@@ -446,7 +446,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
     } else {
         temp = realloc(opts_buf->excluded, sizeof(char*) * opts_buf->excluded_size);
         if (temp == NULL) {
-            free_and_return(opts_buf, ALLOCATOR_FAILED);
+            free_opts_and_return(opts_buf, ALLOCATOR_FAILED);
         }
         opts_buf->excluded = temp;
     }
