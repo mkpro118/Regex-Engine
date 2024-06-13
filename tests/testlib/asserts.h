@@ -101,6 +101,7 @@ memcpy(_arr2, y, sizeof(type) * (sz));\
 qsort(_arr1, (sz), sizeof(type), comparator);\
 qsort(_arr2, (sz), sizeof(type), comparator)
 
+#ifdef FAIL_FAST
 /* Compare arrays of integers (unordered), and display a message about the failure */
 #define assert_equals_int_array_unordered(a, b, size) do {\
     mem_equals((a), (b), int*);\
@@ -131,5 +132,36 @@ qsort(_arr2, (sz), sizeof(type), comparator)
     free(_arr2);\
 } while(0)
 
+#else // not FAIL_FAST
+
+/* Compare arrays of integers (unordered), and display a message about the failure */
+#define assert_equals_int_array_unordered(a, b, size) do {\
+    mem_equals((a), (b), int*);\
+    _test_arr_sort_((a), (b), (size), int, compar_int);\
+    for (int i = 0; i < (size); i++) {\
+        if (_arr1[i] != _arr2[i]) {\
+            ASSERTION_FAILED("Mismatched elements (index %d after sorting asc.), %d in " #a " not found in " #b ".\n", i, _arr1[i]);\
+            break;\
+        }\
+    }\
+    free(_arr1);\
+    free(_arr2);\
+} while(0)
+
+/* Compare arrays of strings (unordered), and display a message about the failure */
+#define assert_equals_str_array_unordered(a, b, size) do {\
+    mem_equals((a), (b), int*);\
+    _test_arr_sort_((a), (b), (size), char*, compar_str);\
+    for (int i = 0; i < (size); i++) {\
+        if (strcmp(_arr1[i], _arr2[i]) != 0) {\
+            ASSERTION_FAILED("Mismatched elements (index %d after sorting with strcmp), %s in " #a " not found in " #b ".\n", i, _arr1[i]);\
+            break;\
+        }\
+    }\
+    free(_arr1);\
+    free(_arr2);\
+} while(0)
+
+#endif // FAIL_FAST
 
 #endif // _TEST_LIB_ASSERTS_H_
