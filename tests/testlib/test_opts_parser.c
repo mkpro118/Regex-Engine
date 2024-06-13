@@ -133,6 +133,7 @@ void test_opt_parser_ok_8(void) {
     assert_equals_str_array_unordered(expected, opts_buf.included, 3);
 }
 
+// Test parse error: Unsupported option
 void test_opt_parser_fail_1(void) {
     char* opts[] = {"--fail-fast", "bad", "--dry-run", "--randomize"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -143,6 +144,7 @@ void test_opt_parser_fail_1(void) {
     assert_equals_int(errno, 0);
 }
 
+// Test parse error: no value to --verbose
 void test_opt_parser_fail_3(void) {
     char* opts[] = {"-v"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -152,6 +154,7 @@ void test_opt_parser_fail_3(void) {
     assert_equals_int(ret, 3);
 }
 
+// Test parse error: bad value to --verbose
 void test_opt_parser_fail_4(void) {
     char* opts[] = {"--verbose", "3"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -161,6 +164,7 @@ void test_opt_parser_fail_4(void) {
     assert_equals_int(ret, 4);
 }
 
+// Test parse error: no value to --run
 void test_opt_parser_fail_5(void) {
     char* opts[] = {"--run"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -170,6 +174,7 @@ void test_opt_parser_fail_5(void) {
     assert_equals_int(ret, 5);
 }
 
+// Test parse error: bad value to --run
 void test_opt_parser_fail_6(void) {
     char* opts[] = {"-r", "test_func"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -179,6 +184,7 @@ void test_opt_parser_fail_6(void) {
     assert_equals_int(ret, 6);
 }
 
+// Test parse error: no value to --exclude
 void test_opt_parser_fail_7(void) {
     char* opts[] = {"-x"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -188,6 +194,7 @@ void test_opt_parser_fail_7(void) {
     assert_equals_int(ret, 7);
 }
 
+// Test parse error: bad value to --exclude
 void test_opt_parser_fail_8(void) {
     char* opts[] = {"--exclude", "test_func"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -197,6 +204,7 @@ void test_opt_parser_fail_8(void) {
     assert_equals_int(ret, 8);
 }
 
+// Test parse error: no value to --output
 void test_opt_parser_fail_9(void) {
     char* opts[] = {"-o"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -206,6 +214,7 @@ void test_opt_parser_fail_9(void) {
     assert_equals_int(ret, 9);
 }
 
+// Test parse error: no value to --timeout
 void test_opt_parser_fail_10(void) {
     char* opts[] = {"-t"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -215,6 +224,7 @@ void test_opt_parser_fail_10(void) {
     assert_equals_int(ret, 10);
 }
 
+// Test parse error: bad value to --timeout
 void test_opt_parser_fail_11(void) {
     char* opts[] = {"--timeout", "bad"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -224,6 +234,7 @@ void test_opt_parser_fail_11(void) {
     assert_equals_int(ret, 11);
 }
 
+// Test parse error: using incompatible options verbose and summary
 void test_opt_parser_fail_12(void) {
     char* opts[] = {"--summary", "-v", "1"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
