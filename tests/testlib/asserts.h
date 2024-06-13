@@ -12,18 +12,18 @@ extern int ASSERTS_EXIT_CODE;
 
 #ifdef FAIL_FAST
 
-  #define ASSERTION_FAILED(fmt, a, b) do {\
+  #define ASSERTION_FAILED(...) do {\
       fprintf(stderr, "Assertion Failed! %s:%d | ", __func__, __LINE__);\
-      fprintf(stderr, fmt, (a), (b));\
+      fprintf(stderr, __VA_ARGS__);\
       ASSERTS_EXIT_CODE = 1;\
       return;\
   } while(0)
 
 #else
 
-  #define ASSERTION_FAILED(fmt, a, b) do {\
+  #define ASSERTION_FAILED(...) do {\
       fprintf(stderr, "Assertion Failed! %s:%d | ", __func__, __LINE__);\
-      fprintf(stderr, fmt, (a), (b));\
+      fprintf(stderr, __VA_ARGS__);\
       ASSERTS_EXIT_CODE = 1;\
   } while(0)
 
@@ -31,6 +31,22 @@ extern int ASSERTS_EXIT_CODE;
 
 /* If they refer to the same memory then they are the same thing */
 #define mem_equals(a, b, type) if ((type) (a) == ((type) (b))) break;
+
+
+/* Assert a value is NULL */
+#define assert_is_null(a) do {\
+    if ((a) != NULL) {\
+        ASSERTION_FAILED("Pointer " #a " is not NULL, found %p\n", (void*) (a));\
+    }\
+} while (0)
+
+
+/* Assert a value is not NULL */
+#define assert_is_not_null(a) do {\
+    if ((a) == NULL) {\
+        ASSERTION_FAILED("Pointer " #a " is NULL\n");\
+    }\
+} while (0)
 
 /* Compare integers, and display a message about the failure */
 #define assert_equals_int(a, b) do {\
@@ -58,10 +74,19 @@ static inline int compar_str(const void* a, const void* b) {
     return strcmp((const char*) a, (const char*) b);
 }
 
+#define _ensure_not_null_(x, y) {if ((x) == NULL) {\
+    ASSERTION_FAILED("Cannot assert because " #x " is NULL.\n");\
+    break;\
+} else if ((y) == NULL) {\
+    ASSERTION_FAILED("Cannot assert because " #y " is NULL.\n");\
+    break;\
+}}
+
 
 /* Compare arrays of integers (ordered), and display a message about the failure */
 #define assert_equals_int_array(a, b, size) do {\
     mem_equals((a), (b), int*);\
+    _ensure_not_null_((a), (b));\
     for (int i = 0; i < (size); i++) {\
         if ((a)[i] != (b)[i]) {\
             ASSERTION_FAILED("Mismatch at index %d, %d != %d\n", i, (a)[i], (b)[i]);\
@@ -73,6 +98,7 @@ static inline int compar_str(const void* a, const void* b) {
 /* Compare arrays of strings (ordered), and display a message about the failure */
 #define assert_equals_str_array(a, b, size) do {\
     mem_equals((a), (b), int*);\
+    _ensure_not_null_((a), (b));\
     for (int i = 0; i < (size); i++) {\
         if (strcmp((a)[i], (b)[i]) != 0) {\
             ASSERTION_FAILED("Mismatch at index %d, %d != %d\n", i, (a)[i], (b)[i]);\
@@ -104,6 +130,7 @@ qsort(_arr2, (sz), sizeof(type), comparator)
 #ifdef FAIL_FAST
 /* Compare arrays of integers (unordered), and display a message about the failure */
 #define assert_equals_int_array_unordered(a, b, size) do {\
+    _ensure_not_null_((a), (b));\
     mem_equals((a), (b), int*);\
     _test_arr_sort_((a), (b), (size), int, compar_int);\
     for (int i = 0; i < (size); i++) {\
@@ -119,6 +146,7 @@ qsort(_arr2, (sz), sizeof(type), comparator)
 
 /* Compare arrays of strings (unordered), and display a message about the failure */
 #define assert_equals_str_array_unordered(a, b, size) do {\
+    _ensure_not_null_((a), (b));\
     mem_equals((a), (b), int*);\
     _test_arr_sort_((a), (b), (size), char*, compar_str);\
     for (int i = 0; i < (size); i++) {\
@@ -137,6 +165,7 @@ qsort(_arr2, (sz), sizeof(type), comparator)
 /* Compare arrays of integers (unordered), and display a message about the failure */
 #define assert_equals_int_array_unordered(a, b, size) do {\
     mem_equals((a), (b), int*);\
+    _ensure_not_null_((a),(b));\
     _test_arr_sort_((a), (b), (size), int, compar_int);\
     for (int i = 0; i < (size); i++) {\
         if (_arr1[i] != _arr2[i]) {\
@@ -151,6 +180,7 @@ qsort(_arr2, (sz), sizeof(type), comparator)
 /* Compare arrays of strings (unordered), and display a message about the failure */
 #define assert_equals_str_array_unordered(a, b, size) do {\
     mem_equals((a), (b), int*);\
+    _ensure_not_null_((a),(b));\
     _test_arr_sort_((a), (b), (size), char*, compar_str);\
     for (int i = 0; i < (size); i++) {\
         if (strcmp(_arr1[i], _arr2[i]) != 0) {\
