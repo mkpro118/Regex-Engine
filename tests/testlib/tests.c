@@ -284,6 +284,11 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             context = NO_CONTEXT;
             opts_buf->fail_fast = 1;
         }
+        // Parallel execution
+        else if (check_opt(opt, "-p", "--parallel")) {
+            context = NO_CONTEXT;
+            opts_buf->parallel = 1;
+        }
         // Dry Run
         else if (check_opt(opt, "-d", "--dry-run")) {
             context = NO_CONTEXT;
