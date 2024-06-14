@@ -44,9 +44,9 @@ void test_opt_parser_ok_0(void) {
 }
 
 // Tests that parser works successfully on good input
-// Options tested: --fail-fast/-ff, --dry-run/-d, --randomize/-z
+// Options tested: --fail-fast/-ff, --dry-run/-d, --randomize/-z, --parallel/-p
 void test_opt_parser_ok_1(void) {
-    char* opts[] = {"--fail-fast", "--dry-run", "-z"};
+    char* opts[] = {"--fail-fast", "--dry-run", "-z", "-p"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
@@ -55,7 +55,7 @@ void test_opt_parser_ok_1(void) {
 }
 
 // Tests that parser sets boolean values correctly on good input
-// Options tested: --fail-fast/-ff, --dry-run/-d, --randomize/-z
+// Options tested: --fail-fast/-ff, --dry-run/-d, --randomize/-z, --parallel/-p
 void test_opt_parser_ok_2(void) {
     char* opts[] = {"-ff", "-d", "--randomize"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
@@ -67,6 +67,7 @@ void test_opt_parser_ok_2(void) {
     assert_equals_int(opts_buf.dry_run, 1);
     assert_equals_int(opts_buf.verbose, 1);
     assert_equals_int(opts_buf.randomize, 1);
+    assert_equals_int(opts_buf.parallel, 1);
 }
 
 // Another test that verifies boolean values are correctly set on good input
