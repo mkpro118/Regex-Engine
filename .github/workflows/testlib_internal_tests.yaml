@@ -1,0 +1,20 @@
+name: linter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the internal tests
+        run: make build_test_internal
+
+      - name: Run the internal tests
+        run: make test_internal
