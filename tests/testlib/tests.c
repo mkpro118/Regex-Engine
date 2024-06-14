@@ -567,15 +567,44 @@ void free_test_suite(TestSuite* suite) {
 // Display dry run information
 // Assumes suite is a well formed object, and handle is valid
 void dry_run(TestSuite* suite, FILE* handle) {
+    // Display relevant options
+    fprintf(handle, "Test parameters:\n");
+    if (suite->opts->verbose > 0) {
+        fprintf(handle, "versbosity | %d\n", suite->opts->verbose);
+    } else {
+        fprintf(handle, "versbosity | off\n");
+    }
+    fprintf(handle, "parallel   | %s\n", suite->opts->parallel ? "yes" : "no");
+    fprintf(handle, "fail fast  | %s\n", suite->opts->fail_fast ? "yes" : "no");
+    fprintf(handle, "randomize  | %s\n", suite->opts->randomize ? "yes" : "no");
+    if (suite->opts->timeout > 0) {
+        fprintf(handle, "timeout    | %dms\n", suite->opts->timeout);
+    } else {
+        fprintf(handle, "timeout    | no timeout\n");
+    }
+
     size_t size = suite->opts->included_size;
     if (size == 0) {
         fprintf(handle, "There are no tests to be run in this suite.\n");
+        return;
     } else {
-        fprintf(handle, "This suite will run the following tests (%d):\n", suite->opts->included_size);
+        fprintf(handle, "This suite will run the following tests (%d):\n", size);
 
-        for (size_t i = 0; i < suite->opts->included_size; i++) {
-
+        for (size_t i = 0; i < size; i++) {
+            fprintf(handle, "%s\n", suite->opts->included[i]);
         }
+    }
+
+    // Excluded tests, if any
+    size = suite->opts->excluded_size;
+    if (size == 0) {
+        return;
+    }
+
+    fprintf(handle, "The following tests will not be run (%d):\n", size);
+
+    for (size_t i = 0; i < size; i++) {
+        fprintf(handle, "%s\n", suite->opts->excluded[i]);
     }
 }
 
