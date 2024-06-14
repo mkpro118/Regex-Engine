@@ -57,7 +57,7 @@ void test_opt_parser_ok_1(void) {
 // Tests that parser sets boolean values correctly on good input
 // Options tested: --fail-fast/-ff, --dry-run/-d, --randomize/-z, --parallel/-p
 void test_opt_parser_ok_2(void) {
-    char* opts[] = {"-ff", "-d", "--randomize"};
+    char* opts[] = {"-ff", "-d", "--randomize", "--parallel"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
