@@ -517,6 +517,9 @@ TestSuite const* create_test_suite(TestOpts* opts) {
         return NULL;
     }
 
+    // Initialize number of tests to 0, may have garbage value after malloc
+    suite->n_tests = 0;
+
     // Allocate memory for the array of tests in the suite
     suite->tests = malloc(sizeof(Test*) * opts->included_size);
     if (suite->tests == NULL) {
