@@ -147,6 +147,6 @@ void free_test_suite(TestSuite* suite);
  *
  * @return Number of tests failed, 0 if all tests succeed
  */
-int run_test_suite(TestSuite* suite);
+int run_test_suite(TestSuite const* suite);
 
 #endif // _RUN_TEST_H_
