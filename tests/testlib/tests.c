@@ -567,31 +567,49 @@ void free_test_suite(TestSuite* suite) {
 // Display dry run information
 // Assumes suite is a well formed object, and handle is valid
 void dry_run(TestSuite* suite, FILE* handle) {
+    fprintf(handle, "\nDry-Run Report\n--------------\n");
     // Display relevant options
-    fprintf(handle, "Test parameters:\n");
-    if (suite->opts->verbose > 0) {
-        fprintf(handle, "versbosity | %d\n", suite->opts->verbose);
+    fprintf(handle, "The following strategies will be used:\n");
+    // Parallel or Sequential
+    if (suite->opts->parallel) {
+        fprintf(handle, " - Tests will be executed in parallel using upto %d threads\n", 0);
     } else {
-        fprintf(handle, "versbosity | off\n");
+        fprintf(handle, " - Tests will be executed sequentially\n");
     }
-    fprintf(handle, "parallel   | %s\n", suite->opts->parallel ? "yes" : "no");
-    fprintf(handle, "fail fast  | %s\n", suite->opts->fail_fast ? "yes" : "no");
-    fprintf(handle, "randomize  | %s\n", suite->opts->randomize ? "yes" : "no");
+
+    // Fail Fast
+    if (suite->opts->fail_fast) {
+        fprintf(handle, " - Tests will stop after the first failure\n");
+    }
+
+    // Randomization
+    if (suite->opts->randomize) {
+        fprintf(handle, " - Tests will execute in random order\n");
+    }
+
+    // Timeout
     if (suite->opts->timeout > 0) {
-        fprintf(handle, "timeout    | %dms\n", suite->opts->timeout);
+        fprintf(handle, " - Time limit per tests is %dms\n", suite->opts->timeout);
     } else {
-        fprintf(handle, "timeout    | no timeout\n");
+        fprintf(handle, " - No time limit is set\n");
+    }
+
+    // Verbosity
+    if (suite->opts->verbose > 0) {
+        fprintf(handle, " - Versbosity level %d\n", suite->opts->verbose);
+    } else {
+        fprintf(handle, " - Versbosity is turned off\n");
     }
 
     size_t size = suite->opts->included_size;
     if (size == 0) {
-        fprintf(handle, "There are no tests to be run in this suite.\n");
+        fprintf(handle, "\nThere are no tests to be run in this suite.\n");
         return;
     } else {
-        fprintf(handle, "This suite will run the following tests (%d):\n", size);
+        fprintf(handle, "\nThe following tests will be run (%d):\n", (int) size);
 
         for (size_t i = 0; i < size; i++) {
-            fprintf(handle, "%s\n", suite->opts->included[i]);
+            fprintf(handle, " %s\n", suite->opts->included[i]);
         }
     }
 
@@ -601,58 +619,63 @@ void dry_run(TestSuite* suite, FILE* handle) {
         return;
     }
 
-    fprintf(handle, "The following tests will not be run (%d):\n", size);
+    fprintf(handle, "\nThe following tests will not be run (%d):\n", (int) size);
 
     for (size_t i = 0; i < size; i++) {
-        fprintf(handle, "%s\n", suite->opts->excluded[i]);
+        fprintf(handle, " %s\n", suite->opts->excluded[i]);
     }
 }
 
 // Runs all included tests in parallel
 // Assumes suite is a well formed object, and handle is valid
-TestResults run_tests_parallel(TestSuite* suite, FILE* handle) {
-
+TestResults run_tests_parallel(TestSuite const* suite, FILE* handle) {
+    fprintf(stdout, "lol %p, %p\n", (void*)suite, (void*)handle);
+    return (TestResults) {0};
 }
 
 // Runs all included tests sequentially
 // Assumes suite is a well formed object, and handle is valid
-TestResults run_tests_sequential(TestSuite* suite, FILE* handle) {
+TestResults run_tests_sequential(TestSuite const* suite, FILE* handle) {
+    fprintf(stdout, "lol %p, %p\n", (void*)suite, (void*)handle);
+    return (TestResults) {0};
 }
 
 // Runs the set of tests specified by the current test suite
-int run_test_suite(TestSuite* suite) {
+int run_test_suite(TestSuite const* test_suite) {
     // Assume that options were given
     unsigned char opts_missing = 0;
+    TestSuite suite = *test_suite;
 
-    if (suite->opts == NULL) { // If options were not provided, use defaults
+    if (suite.opts == NULL) { // If options were not provided, use defaults
         opts_missing = 1; // options were not given
-        suite->opts = malloc(sizeof(TestOpts));
-        parse_test_opts(suite->opts, NULL, 0);
+        suite.opts = malloc(sizeof(TestOpts));
+        parse_test_opts(suite.opts, NULL, 0);
     }
 
     FILE* handle;
-    if (suite->opts->output_file != NULL) {
-        handle = fopen(suite->opts->output_file, "w");
+    if (suite.opts->output_file != NULL) {
+        handle = fopen(suite.opts->output_file, "w");
     } else {
         handle = stdout;
     }
 
-    if (suite->opts->dry_run) {
-        dry_run(suite, handle);
+    if (suite.opts->dry_run) {
+        dry_run(&suite, handle);
         return 0;
     }
 
-    if (suite->opts->parallel) {
-        run_tests_parallel(suite, handle);
+    if (suite.opts->parallel) {
+        run_tests_parallel(&suite, handle);
     } else {
-        run_tests_sequential(suite, handle);
+        run_tests_sequential(&suite, handle);
     }
 
     // If options were not given, we must have allocated them
     // Release those resources now to prevent memory leaks
     if (opts_missing) {
-        free_opts(suite->opts); // This doesn't free the opts itself
-        free(suite->opts); // So free it here
-        suite->opts = NULL; // Reset memory
+        free_opts(suite.opts); // This doesn't free the opts itself
+        free(suite.opts); // So free it here
+        suite.opts = NULL; // Reset memory
     }
+    return 0;
 }
