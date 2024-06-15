@@ -6,6 +6,8 @@ on:
       - main
   pull_request:
 
+env:
+  LD_LIBRARY_PATH: ${{ github.workspace }}/build
 
 jobs:
   testlib_internal_tests_build:
@@ -22,6 +24,7 @@ jobs:
           name: build-artifacts
           path: |
             out/*.test_internal
+            out/*.so
           if-no-files-found: error  # Fail if no files are found
 
   testlib_internal_tests_run:
@@ -37,6 +40,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
+          path: build
 
       - name: Make artifacts executable
         run: chmod +x *.test_internal
