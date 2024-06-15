@@ -419,7 +419,7 @@ int parse_test_opts(TestOpts* opts_buf, char** opts, size_t opts_size) {
             // as it may or may not be in static memory
             opts_buf->output_file = strdup(opts[i]);
         } else {
-            int ret; // Return value of include_test/exclude_test
+            int ret = 0; // Return value of include_test/exclude_test
 
             switch (context) {
             case INCLUDE:
