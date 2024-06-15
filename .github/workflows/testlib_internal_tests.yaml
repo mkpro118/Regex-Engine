@@ -30,17 +30,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: build-artifacts
-        if-no-files-found: error  # Fail if no files are found
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          if-no-files-found: error  # Fail if no files are found
 
-    - name: Make artifacts executable
-      run: chmod +x out/*.test_internal
+      - name: Make artifacts executable
+        run: chmod +x out/*.test_internal
 
-    - name: Run tests
-      run: make test_internal
+      - name: Run tests
+        run: make test_internal
