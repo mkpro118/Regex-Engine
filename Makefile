@@ -12,6 +12,7 @@ SRC_DIR := src
 OUT_DIR := out
 INCLUDE_DIR := include
 TEST_SRC_DIR := tests
+TEST_LIB_DIR := testlib
 
 TESTLIB_SRC_DIR := ./tests/testlib
 TESTLIB_SO := libtest.so
@@ -23,7 +24,7 @@ TESTLIB_TEST_SRCS := $(filter-out $(TESTLIB_SRCS), $(TESTLIB_TEST_SRCS))
 
 TESTLIB_TEST_EXES :=  $(patsubst $(TESTLIB_SRC_DIR)/%.c,$(OUT_DIR)/%.test_internal,$(TESTLIB_TEST_SRCS))
 
-TESTLIB_TEST_LDFLAGS := -L$(TESTLIB_SRC_DIR) -l$(subst .so,,$(subst lib,,$(TESTLIB_SO)))
+TESTLIB_TEST_LDFLAGS := -L$(TEST_LIB_DIR) -l$(subst .so,,$(subst lib,,$(TESTLIB_SO)))
 
 BASE_BUILD_COMMAND := $(CC) $(CFLAGS) $(SANITIZER_FLAGS) -I $(INCLUDE_DIR)
 
@@ -46,12 +47,15 @@ test_internal: $(TESTLIB_TEST_EXES)
 $(OUT_DIR):
 	mkdir -p $@
 
-$(OUT_DIR)/%.test_internal: $(TESTLIB_SRC_DIR)/%.c | $(OUT_DIR) $(TESTLIB_SO)
+$(TEST_LIB_DIR):
+	mkdir -p $@
+
+$(OUT_DIR)/%.test_internal: $(TESTLIB_SRC_DIR)/%.c | $(OUT_DIR) $(TEST_LIB_DIR)/$(TESTLIB_SO)
 	$(BASE_BUILD_COMMAND) -I $(TESTLIB_SRC_DIR) $(TESTLIB_TEST_LDFLAGS) -o $@ $<
 
 
-$(TESTLIB_SO): $(TESTLIB_SRCS) | $(OUT_DIR)
-	$(BASE_BUILD_COMMAND) -I $(TESTLIB_SRC_DIR) -fPIC -shared -o $(TESTLIB_SRC_DIR)/$@ $^
+$(TEST_LIB_DIR)/$(TESTLIB_SO): $(TESTLIB_SRCS) | $(TEST_LIB_DIR)
+	$(BASE_BUILD_COMMAND) -I $(TESTLIB_SRC_DIR) -fPIC -shared -o $@ $^
 
 clean:
 	rm -fr $(OUT_DIR)

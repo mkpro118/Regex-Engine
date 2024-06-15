@@ -21,7 +21,7 @@ jobs:
           name: build-artifacts
           path: |
             out/*.test_internal
-            out/*.so
+            testlib/*.so
           if-no-files-found: error  # Fail if no files are found
 
   testlib_internal_tests_run:
@@ -37,10 +37,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: build
+          path: ${{ github.workspace }}/build
 
       - name: Configure Linker Library Path
-        run: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/build
+        run: export LD_LIBRARY_PATH=${{ github.workspace }}/build/testlib
 
       - name: Make artifacts executable
         run: chmod +x build/*.test_internal
