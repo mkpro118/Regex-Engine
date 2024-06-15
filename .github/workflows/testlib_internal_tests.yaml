@@ -17,12 +17,12 @@ jobs:
         run: make build_test_internal
 
       - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-artifacts
-        path: |
-          out/*.test_internal
-        if-no-files-found: error  # Fail if no files are found
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            out/*.test_internal
+          if-no-files-found: error  # Fail if no files are found
 
   testlib_internal_tests_run:
     # This ensures that the test job runs only if the build job succeeds
