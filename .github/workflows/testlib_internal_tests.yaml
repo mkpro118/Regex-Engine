@@ -6,9 +6,6 @@ on:
       - main
   pull_request:
 
-env:
-  LD_LIBRARY_PATH: ${{ github.workspace }}/build
-
 jobs:
   testlib_internal_tests_build:
     runs-on: ubuntu-latest
@@ -42,8 +39,11 @@ jobs:
           name: build-artifacts
           path: build
 
+      - name: Configure Linker Library Path
+        run: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{ github.workspace }}/build
+
       - name: Make artifacts executable
-        run: chmod +x *.test_internal
+        run: chmod +x build/*.test_internal
 
       - name: Run tests
         run: make test_internal
