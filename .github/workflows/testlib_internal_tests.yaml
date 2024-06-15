@@ -1,4 +1,4 @@
-name: linter
+name: testlib_internal_tests
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 
 jobs:
-  linter:
+  testlib_internal_tests_build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,5 +16,31 @@ jobs:
       - name: Build the internal tests
         run: make build_test_internal
 
-      - name: Run the internal tests
-        run: make test_internal
+      - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          out/*.test_internal
+        if-no-files-found: error  # Fail if no files are found
+
+  testlib_internal_tests_run:
+    # This ensures that the test job runs only if the build job succeeds
+    needs: testlib_internal_tests_build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+        if-no-files-found: error  # Fail if no files are found
+
+    - name: Make artifacts executable
+      run: chmod +x out/*.test_internal
+
+    - name: Run tests
+      run: make test_internal
