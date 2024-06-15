@@ -41,7 +41,10 @@ build_test:
 build_test_internal: $(TESTLIB_TEST_EXES) | $(OUT_DIR)
 
 test_internal: $(TESTLIB_TEST_EXES)
-	for f in $^; do ./$$f; done
+	@printf "\n[info] Configuring LD_LIBRARY_PATH as `pwd`/$(TEST_LIB_DIR)\n"
+	@printf "\nRunning internal tests...\n\n"
+	@export LD_LIBRARY_PATH="$(shell pwd)/$(TEST_LIB_DIR):${LD_LIBRARY_PATH}" && \
+	for f in $(patsubst out/%.test_internal,%,$^); do echo -n $$f ...;out/$$f.test_internal > /dev/null && echo " Ok"; done
 
 
 $(OUT_DIR):
@@ -58,4 +61,4 @@ $(TEST_LIB_DIR)/$(TESTLIB_SO): $(TESTLIB_SRCS) | $(TEST_LIB_DIR)
 	$(BASE_BUILD_COMMAND) -I $(TESTLIB_SRC_DIR) -fPIC -shared -o $@ $^
 
 clean:
-	rm -fr $(OUT_DIR)
+	rm -fr $(OUT_DIR) $(TEST_LIB_DIR)
