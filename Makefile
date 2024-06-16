@@ -5,7 +5,7 @@ CC := gcc
 OPTIMIZATION_FLAG := -Og
 
 # Base compiler flags: debugging symbols, pedantic mode, treat warnings as errors, enable extra warnings
-BASE_CFLAGS := -g -pedantic -Werror -Wall -Wextra $(OPTIMIZATION_FLAG)
+BASE_CFLAGS := -g -pedantic -Werror -Wall -Wextra --std=gnu11 $(OPTIMIZATION_FLAG)
 
 # Sanitizer flags: empty for Windows, otherwise use AddressSanitizer, UndefinedBehaviorSanitizer, and LeakSanitizer
 ifeq ($(OS),Windows_NT)
