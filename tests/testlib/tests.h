@@ -28,6 +28,20 @@ struct Test {
     test_func_t func;
 };
 
+/**
+ * This structure represents a single test suite
+ *
+ * Members:
+ *     - tests: A list of tests included in the suite
+ *     - n_tests: The number of tests in the suite
+ *     - opts: A Pointer to the options used by the suite
+ */
+struct TestSuite {
+    Test** tests;
+    size_t n_tests;
+    TestOpts* opts;
+};
+
 /* This variable must be defined by tests to contain all the tests in scope */
 extern Test tests[];
 

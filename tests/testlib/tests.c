@@ -24,12 +24,6 @@
 #define SUMMARY_AND_VERBOSE 12
 #define ALLOCATOR_FAILED 13
 
-struct TestSuite {
-    Test** tests;
-    size_t n_tests;
-    TestOpts* opts;
-};
-
 enum TestResult {
     ABORTED,
     FAILURE,
