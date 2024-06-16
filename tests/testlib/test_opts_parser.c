@@ -21,7 +21,8 @@ static inline void after_each(void) {
 }
 
 // Tests that the parser sets default options on no arguments
-void test_opt_parser_ok_0(void) {
+int test_opt_parser_ok_0(void) {
+    TEST_BEGIN;
     int ret;
     ret = parse_test_opts(&opts_buf, NULL, 0);
     assert_equals_int(ret, 0);
@@ -41,22 +42,26 @@ void test_opt_parser_ok_0(void) {
     assert_equals_int(opts_buf.excluded_size, 0);
     assert_is_null(opts_buf.excluded);
     assert_is_null(opts_buf.output_file);
+    TEST_END;
 }
 
 // Tests that parser works successfully on good input
 // Options tested: --fail-fast/-ff, --dry-run/-d, --randomize/-z, --parallel/-p
-void test_opt_parser_ok_1(void) {
+int test_opt_parser_ok_1(void) {
+    TEST_BEGIN;
     char* opts[] = {"--fail-fast", "--dry-run", "-z", "-p"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 0);
+    TEST_END;
 }
 
 // Tests that parser sets boolean values correctly on good input
 // Options tested: --fail-fast/-ff, --dry-run/-d, --randomize/-z, --parallel/-p
-void test_opt_parser_ok_2(void) {
+int test_opt_parser_ok_2(void) {
+    TEST_BEGIN;
     char* opts[] = {"-ff", "-d", "--randomize", "--parallel"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
@@ -68,11 +73,13 @@ void test_opt_parser_ok_2(void) {
     assert_equals_int(opts_buf.verbose, 1);
     assert_equals_int(opts_buf.randomize, 1);
     assert_equals_int(opts_buf.parallel, 1);
+    TEST_END;
 }
 
 // Another test that verifies boolean values are correctly set on good input
 // Options tested: --fail-fast/-ff, --summary/-s
-void test_opt_parser_ok_3(void) {
+int test_opt_parser_ok_3(void) {
+    TEST_BEGIN;
     char* opts[] = {"--fail-fast", "--summary"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
@@ -86,11 +93,13 @@ void test_opt_parser_ok_3(void) {
     assert_equals_int(opts_buf.verbose, 0);
     assert_equals_int(opts_buf.included_size, 4);
     assert_equals_int(opts_buf.excluded_size, 0);
+    TEST_END;
 }
 
 // Test verbosity is parsed correctly
 // Options tested: --verbose/-v
-void test_opt_parser_ok_4(void) {
+int test_opt_parser_ok_4(void) {
+    TEST_BEGIN;
     char* opts[] = {"-v", "2"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
@@ -98,11 +107,13 @@ void test_opt_parser_ok_4(void) {
 
     assert_equals_int(ret, 0);
     assert_equals_int(opts_buf.verbose, 2);
+    TEST_END;
 }
 
 // Test timeout is parsed correctly
 // Options tested: --timeout/-t
-void test_opt_parser_ok_5(void) {
+int test_opt_parser_ok_5(void) {
+    TEST_BEGIN;
     char* opts[] = {"--timeout", "2000"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
@@ -110,12 +121,14 @@ void test_opt_parser_ok_5(void) {
 
     assert_equals_int(ret, 0);
     assert_equals_int(opts_buf.timeout, 2000);
+    TEST_END;
 }
 
 // Tests that the parser correctly includes and excludes tests
 // Options tested: --exclude/-x
 // Implicitly tests inclusion too
-void test_opt_parser_ok_6(void) {
+int test_opt_parser_ok_6(void) {
+    TEST_BEGIN;
     char* opts[] = {"-x", "c", "b"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
@@ -128,11 +141,13 @@ void test_opt_parser_ok_6(void) {
     assert_equals_int(opts_buf.excluded_size, 2);
     assert_equals_str_array_unordered(opts_buf.included, expected_included, 2);
     assert_equals_str_array_unordered(opts_buf.excluded, expected_excluded, 2);
+    TEST_END;
 }
 
 // Tests that the parser correctly parses the output file
 // Options tested: --output/-o
-void test_opt_parser_ok_7(void) {
+int test_opt_parser_ok_7(void) {
+    TEST_BEGIN;
     char* opts[] = {"-o", "test_file"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
@@ -140,12 +155,14 @@ void test_opt_parser_ok_7(void) {
 
     assert_equals_int(ret, 0);
     assert_equals_str(opts_buf.output_file, "test_file");
+    TEST_END;
 }
 
 // Tests that the parser correctly lists the included tests
 // when specified multiple times
 // Options tested: --run/-r
-void test_opt_parser_ok_8(void) {
+int test_opt_parser_ok_8(void) {
+    TEST_BEGIN;
     char* opts[] = {"-r", "a", "-r", "c", "-r", "d"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
@@ -155,10 +172,12 @@ void test_opt_parser_ok_8(void) {
     assert_equals_int(ret, 0);
     assert_equals_int(opts_buf.included_size, 3);
     assert_equals_str_array_unordered(expected, opts_buf.included, 3);
+    TEST_END;
 }
 
 // Test parse error: Unsupported option
-void test_opt_parser_fail_1(void) {
+int test_opt_parser_fail_1(void) {
+    TEST_BEGIN;
     char* opts[] = {"--fail-fast", "bad", "--dry-run", "--randomize"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
@@ -166,106 +185,127 @@ void test_opt_parser_fail_1(void) {
 
     assert_equals_int(ret, 1);
     assert_equals_int(errno, 0);
+    TEST_END;
 }
 
 // Test parse error: no value to --verbose
-void test_opt_parser_fail_3(void) {
+int test_opt_parser_fail_3(void) {
+    TEST_BEGIN;
     char* opts[] = {"-v"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 3);
+    TEST_END;
 }
 
 // Test parse error: bad value to --verbose
-void test_opt_parser_fail_4(void) {
+int test_opt_parser_fail_4(void) {
+    TEST_BEGIN;
     char* opts[] = {"--verbose", "3"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 4);
+    TEST_END;
 }
 
 // Test parse error: no value to --run
-void test_opt_parser_fail_5(void) {
+int test_opt_parser_fail_5(void) {
+    TEST_BEGIN;
     char* opts[] = {"--run"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 5);
+    TEST_END;
 }
 
 // Test parse error: bad value to --run
-void test_opt_parser_fail_6(void) {
+int test_opt_parser_fail_6(void) {
+    TEST_BEGIN;
     char* opts[] = {"-r", "test_func"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 6);
+    TEST_END;
 }
 
 // Test parse error: no value to --exclude
-void test_opt_parser_fail_7(void) {
+int test_opt_parser_fail_7(void) {
+    TEST_BEGIN;
     char* opts[] = {"-x"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 7);
+    TEST_END;
 }
 
 // Test parse error: bad value to --exclude
-void test_opt_parser_fail_8(void) {
+int test_opt_parser_fail_8(void) {
+    TEST_BEGIN;
     char* opts[] = {"--exclude", "test_func"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 8);
+    TEST_END;
 }
 
 // Test parse error: no value to --output
-void test_opt_parser_fail_9(void) {
+int test_opt_parser_fail_9(void) {
+    TEST_BEGIN;
     char* opts[] = {"-o"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 9);
+    TEST_END;
 }
 
 // Test parse error: no value to --timeout
-void test_opt_parser_fail_10(void) {
+int test_opt_parser_fail_10(void) {
+    TEST_BEGIN;
     char* opts[] = {"-t"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 10);
+    TEST_END;
 }
 
 // Test parse error: bad value to --timeout
-void test_opt_parser_fail_11(void) {
+int test_opt_parser_fail_11(void) {
+    TEST_BEGIN;
     char* opts[] = {"--timeout", "bad"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 11);
+    TEST_END;
 }
 
 // Test parse error: using incompatible options verbose and summary
-void test_opt_parser_fail_12(void) {
+int test_opt_parser_fail_12(void) {
+    TEST_BEGIN;
     char* opts[] = {"--summary", "-v", "1"};
     size_t opts_size = sizeof(opts) / sizeof(char*);
 
     int ret = parse_test_opts(&opts_buf, opts, opts_size);
 
     assert_equals_int(ret, 12);
+    TEST_END;
 }
 
 Test curr_tests[] = {

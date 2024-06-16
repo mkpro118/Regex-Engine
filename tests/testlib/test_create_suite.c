@@ -5,12 +5,12 @@
 #include "asserts.h"
 
 // Dummy functions to tests
-void test_everything(void){}
-void unit_test_1(void){}
-void unit_test_2(void){}
-void fail_unit_test_1(void){}
-void fail_unit_test_2(void){}
-void unit_fail_test_1(void){}
+int test_everything(void) { return 0; }
+int unit_test_1(void) { return 0; }
+int unit_test_2(void) { return 0; }
+int fail_unit_test_1(void) { return 0; }
+int fail_unit_test_2(void) { return 0; }
+int unit_fail_test_1(void) { return 0; }
 
 Test tests[] = {
     {.name="test_everything", .func=test_everything},
@@ -98,14 +98,17 @@ void after_each() {
 }
 
 // Basic test to ensure function terminates
-void test_create_suite_ok_0(void) {
+int test_create_suite_ok_0(void) {
+    TEST_BEGIN;
     reset_opts();
     suite = create_test_suite(&opts);
     assert_is_not_null(suite);
+    TEST_END;
 }
 
 // Test Suite with default options
-void test_create_suite_ok_1(void) {
+int test_create_suite_ok_1(void) {
+    TEST_BEGIN;
     reset_opts();
 
     suite = create_test_suite(&opts);
@@ -114,10 +117,12 @@ void test_create_suite_ok_1(void) {
     assert_is_not_null(suite->tests);
     assert_equals_int(suite->n_tests, 6);
     assert_is_not_null(suite->opts);
+    TEST_END;
 }
 
 // Exclude a few tests
-void test_create_suite_ok_2(void) {
+int test_create_suite_ok_2(void) {
+    TEST_BEGIN;
     opt_strategy = MANUAL;
 
     char* included[] = {
@@ -142,10 +147,12 @@ void test_create_suite_ok_2(void) {
     }
 
     assert_equals_str_array_unordered(actual, included, size);
+    TEST_END;
 }
 
 // Include a few tests
-void test_create_suite_ok_3(void) {
+int test_create_suite_ok_3(void) {
+    TEST_BEGIN;
     opt_strategy = AUTOMATIC; // Frees resources after test
 
     char* options[] = {"-r", "unit_test_1", "unit_test_2"};
@@ -170,10 +177,12 @@ void test_create_suite_ok_3(void) {
     }
 
     assert_equals_str_array_unordered(actual, included, size);
+    TEST_END;
 }
 
 // Ensure the test functions are correct
-void test_create_suite_ok_4(void) {
+int test_create_suite_ok_4(void) {
+    TEST_BEGIN;
     reset_opts();
     suite = create_test_suite(&opts);
     assert_is_not_null(suite);
@@ -187,6 +196,7 @@ void test_create_suite_ok_4(void) {
         assert_equals_str(suite->tests[i]->name, tests[i].name);
         assert_equals_funcptr(suite->tests[i]->func, tests[i].func, test_func_t);
     }
+    TEST_END;
 }
 
 Test curr_tests[] = {
