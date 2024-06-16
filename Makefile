@@ -52,7 +52,7 @@ TESTLIB_TEST_EXES_VALGRIND := $(call test_executables,$(OUT_DIR_VALGRIND))
 BASE_BUILD_COMMAND_ASAN := $(CC) $(BASE_CFLAGS) $(SANITIZER_FLAGS) -I $(INCLUDE_DIR)
 BASE_BUILD_COMMAND_VALGRIND := $(CC) $(BASE_CFLAGS) -I $(INCLUDE_DIR)
 
-VALGRIND_COMMAND := valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes
+VALGRIND_COMMAND := valgrind --error-exitcode=1 --leak-check=full --show-leak-kinds=all --track-origins=yes
 
 # Colors
 COLOR_GREEN := \033[0;32m
