@@ -6,27 +6,27 @@ on:
       - main
   pull_request:
 
-
 jobs:
-  testlib_internal_tests_build:
+  testlib_internal_build_asan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Build the internal tests
-        run: make build_test_internal
+        run: make build_testlib_asan
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: testlib-binaries-asan
           path: |
-            out/*.test_internal
+            out/asan/*.test_internal
+            testlib/asan/*.so
           if-no-files-found: error  # Fail if no files are found
 
-  testlib_internal_tests_run:
+  testlib_internal_run_asan:
     # This ensures that the test job runs only if the build job succeeds
-    needs: testlib_internal_tests_build
+    needs: testlib_internal_build_asan
     runs-on: ubuntu-latest
 
     steps:
@@ -36,11 +36,52 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build-artifacts
-          if-no-files-found: error  # Fail if no files are found
+          name: testlib-binaries-asan
 
-      - name: Make artifacts executable
-        run: chmod +x out/*.test_internal
+      - name: Make binaries executable
+        run: chmod +x ${{ github.workspace }}/out/asan/*.test_internal
 
       - name: Run tests
-        run: make test_internal
+        run: make test_testlib_asan
+
+  testlib_internal_build_valgrind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the internal tests
+        run: make build_testlib_valgrind
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: testlib-binaries-valgrind
+          path: |
+            out/valgrind/*.test_internal
+            testlib/valgrind/*.so
+          if-no-files-found: error  # Fail if no files are found
+
+  testlib_internal_run_valgrind:
+    # This ensures that the test job runs only if the build job succeeds
+    needs: testlib_internal_build_valgrind
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install valgrind
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: testlib-binaries-valgrind
+
+      - name: Make binaries executable
+        run: chmod +x ${{ github.workspace }}/out/valgrind/*.test_internal
+
+      - name: Run tests
+        run: make test_testlib_valgrind
