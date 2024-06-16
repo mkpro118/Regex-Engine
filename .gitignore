@@ -55,4 +55,3 @@ dkms.conf
 out
 out/*
 testlib
-testlib/*
