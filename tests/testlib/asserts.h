@@ -55,6 +55,20 @@ extern int ASSERTS_EXIT_CODE;
     }\
 } while(0)
 
+/* Compare pointers, and display a message about the failure */
+#define assert_equals_ptr(a, b, type) do {\
+    if (((type) (a)) != ((type) (b))) {\
+        ASSERTION_FAILED("%p != %p\n", (a), (b));\
+    }\
+} while(0)
+
+/* Compare pointers, and display a message about the failure */
+#define assert_equals_funcptr(a, b, type) do {\
+    if (((type) (a)) != ((type) (b))) {\
+        ASSERTION_FAILED(#a " != " #b"\n");\
+    }\
+} while(0)
+
 /* Compare strings, and display a message about the failure */
 #define assert_equals_str(a, b) do {\
     mem_equals((a), (b), char*);\
