@@ -108,10 +108,10 @@ test_testlib_asan: build_testlib_asan
 		fi; \
 	) \
 	if [ -n "$$failed_tests" ]; then \
-		printf "\nFailed tests and their outputs:\n$$failed_tests\n"; \
+		printf "\n$(COLOR_RED)Some tests failed!$(END_COLOR)\n$$failed_tests\n"; \
 		exit 1; \
 	else \
-		echo "All tests passed!"; \
+		printf "\n$(COLOR_GREEN)All tests passed!$(END_COLOR)\n"; \
 	fi
 
 # Valgrind Targets
@@ -151,10 +151,10 @@ test_testlib_valgrind: build_testlib_valgrind
 		fi; \
 	) \
 	if [ -n "$$failed_tests" ]; then \
-		printf "\nFailed tests and their outputs:\n$$failed_tests"; \
+		printf "\n$(COLOR_RED)Some tests failed!$(END_COLOR)\n$$failed_tests\n"; \
 		exit 1; \
 	else \
-		echo "All tests passed!"; \
+		printf "\n$(COLOR_GREEN)All tests passed!$(END_COLOR)\n"; \
 	fi
 
 # Clean up build artifacts
