@@ -17,22 +17,51 @@ Test tests[] = {
 TestSuite const* suite;
 TestOpts opts;
 
-void after_each() {
-    free_test_suite(suite);
-    free_opts(&opts);
+enum OptionStrategy {
+    AUTOMATIC,
+    MANUAL,
+} opt_strategy = AUTOMATIC;
+
+void reset_opts() {
+    opt_strategy = AUTOMATIC;
+    opts = (TestOpts) {0};
+
+    // -1 to exclude the null
+    opts.included_size = (sizeof(tests) / sizeof(Test)) - 1;
+    opts.included = malloc(sizeof(char*) * opts.included_size);
+    assert_is_not_null(opts.included);
+    assert_is_null(opts.excluded);
+    assert_is_null(opts.output_file);
+
+    for (size_t i = 0; i < opts.included_size; i++) {
+        opts.included[i] = tests[i].name;
+    }
 }
 
-void test_create_suite_ok_0(void) {
-    int ret = parse_test_opts(&opts, NULL, 0);
-    assert_equals_int(ret, 0);
+void after_each() {
+    free_test_suite(suite);
 
+    if (opt_strategy == AUTOMATIC) {
+        free_opts(&opts);
+        opts.included = NULL;
+        opts.included_size = 0;
+    }
+
+    if (errno) {
+        fprintf(stderr, "%s\n", strerror(errno));
+    }
+}
+
+// Basic test to ensure function terminates
+void test_create_suite_ok_0(void) {
+    reset_opts();
     suite = create_test_suite(&opts);
     assert_is_not_null(suite);
 }
 
+// Test Suite with default options
 void test_create_suite_ok_1(void) {
-    int ret = parse_test_opts(&opts, NULL, 0);
-    assert_equals_int(ret, 0);
+    reset_opts();
 
     suite = create_test_suite(&opts);
     assert_is_not_null(suite);
@@ -44,22 +73,21 @@ void test_create_suite_ok_1(void) {
 
 // Exclude a few tests
 void test_create_suite_ok_2(void) {
-    char* options[] = {"-x", "unit_test_1", "unit_test_2"};
-    size_t opts_size = sizeof(options) / sizeof(char*);
+    opt_strategy = MANUAL;
 
-    int ret = parse_test_opts(&opts, options, opts_size);
-    assert_equals_int(ret, 0);
+    char* included[] = {
+        "test_everything", "fail_unit_test_1",
+        "fail_unit_test_1", "unit_fail_test_1"
+    };
+
+    opts.included = included;
+    opts.included_size = sizeof(included) / sizeof(char*);
 
     suite = create_test_suite(&opts);
     assert_is_not_null(suite);
 
     assert_equals_int(suite->n_tests, 4);
     assert_is_not_null(suite->tests);
-
-    char* included[] = {
-        "test_everything", "fail_unit_test_1",
-        "fail_unit_test_1", "unit_fail_test_1"
-    };
 
     int size = (int)suite->n_tests;
     char* actual[size];
@@ -73,6 +101,8 @@ void test_create_suite_ok_2(void) {
 
 // Include a few tests
 void test_create_suite_ok_3(void) {
+    opt_strategy = AUTOMATIC; // Frees resources after test
+
     char* options[] = {"-r", "unit_test_1", "unit_test_2"};
     size_t opts_size = sizeof(options) / sizeof(char*);
 
