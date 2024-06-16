@@ -18,7 +18,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: testlib-binaries
+          name: testlib-binaries-asan
           path: |
             out/asan/*.test_internal
             testlib/asan/*.so
@@ -36,7 +36,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: testlib-binaries
+          name: testlib-binaries-asan
 
       - name: Make binaries executable
         run: chmod +x ${{ github.workspace }}/out/asan/*.test_internal
@@ -55,7 +55,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: testlib-binaries
+          name: testlib-binaries-valgrind
           path: |
             out/valgrind/*.test_internal
             testlib/valgrind/*.so
@@ -73,7 +73,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: testlib-binaries
+          name: testlib-binaries-valgrind
 
       - name: Make binaries executable
         run: chmod +x ${{ github.workspace }}/out/valgrind/*.test_internal
