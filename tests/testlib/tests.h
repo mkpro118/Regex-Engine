@@ -138,7 +138,7 @@ TestSuite const* create_test_suite(TestOpts* opts);
  *
  * @param suite A pointer to the suite to be freed
  */
-void free_test_suite(TestSuite* suite);
+void free_test_suite(TestSuite const* suite);
 
 /**
  * Runs the set of tests specified by the current test suite.
