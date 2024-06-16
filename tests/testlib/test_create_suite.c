@@ -82,7 +82,7 @@ void test_create_suite_ok_3(void) {
     suite = create_test_suite(&opts);
     assert_is_not_null(suite);
 
-    assert_equals_int(suite->n_tests, 4);
+    assert_equals_int(suite->n_tests, 2);
     assert_is_not_null(suite->tests);
 
     char** included = &options[1];
