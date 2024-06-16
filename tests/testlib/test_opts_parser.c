@@ -336,11 +336,10 @@ int main(void) {
     for (size_t i = 0; i < sizeof(curr_tests) / sizeof(Test); i++) {
         fprintf(stdout, "%s... ", curr_tests[i].name);
         fflush(stdout);
-        ASSERTS_EXIT_CODE = 0;
-        curr_tests[i].func();
+        int exit_code = curr_tests[i].func();
         after_each();
-        overall |= ASSERTS_EXIT_CODE;
-        if (ASSERTS_EXIT_CODE == 0) {
+        overall |= exit_code;
+        if (exit_code == 0) {
             fprintf(stdout, "Passed!\n");
         } else break;
     }
