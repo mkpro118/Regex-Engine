@@ -54,6 +54,14 @@ BASE_BUILD_COMMAND_VALGRIND := $(CC) $(BASE_CFLAGS) -I $(INCLUDE_DIR)
 
 VALGRIND_COMMAND := valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes
 
+# Colors
+COLOR_GREEN := \033[0;32m
+COLOR_RED := \033[0;31m
+COLOR_BLUE := \033[0;36m
+COLOR_YELLOW := \033[0;33m
+END_COLOR := \033[0m
+
+
 # Phony targets (targets that don't represent files)
 .PHONY: all clean build_testlib_asan build_testlib_valgrind test_testlib_asan test_testlib_valgrind
 
@@ -83,7 +91,7 @@ $(OUT_DIR_ASAN)/%.test_internal: $(TESTLIB_SRC_DIR)/%.c | $(OUT_DIR_ASAN) $(TEST
 
 # Build all ASan test executables
 build_testlib_asan: $(TESTLIB_TEST_EXES_ASAN)
-	@echo "ASan build completed."
+	@printf "\nASan build $(COLOR_GREEN)successful$(END_COLOR)."
 
 # Run all ASan tests
 test_testlib_asan: build_testlib_asan
@@ -91,16 +99,16 @@ test_testlib_asan: build_testlib_asan
 	@failed_tests=""; \
 	export LD_LIBRARY_PATH="$(shell pwd)/$(TEST_LIB_DIR_ASAN):${LD_LIBRARY_PATH}"; \
 	$(foreach test,$(TESTLIB_TEST_EXES_ASAN), \
-		printf "%s ... " $$(basename $$(basename $(test) .test_internal)); \
+		printf "$(COLOR_BLUE)%s$(COLOR_YELLOW) ... " $$(basename $$(basename $(test) .test_internal)); \
 		if output=$$(./$(test) 2>&1); then \
-			echo "Ok"; \
+			echo "$(COLOR_GREEN)Ok$(END_COLOR)"; \
 		else \
-			echo "Fail"; \
+			echo "$(COLOR_RED)Fail$(END_COLOR)"; \
 			failed_tests="$$failed_tests\n$$(basename $$(basename $(test) .test_internal))\n$$output\n"; \
 		fi; \
 	) \
 	if [ -n "$$failed_tests" ]; then \
-		printf "\nFailed tests and their outputs:\n$$failed_tests"; \
+		printf "\nFailed tests and their outputs:\n$$failed_tests\n"; \
 		exit 1; \
 	else \
 		echo "All tests passed!"; \
@@ -126,7 +134,7 @@ $(OUT_DIR_VALGRIND)/%.test_internal: $(TESTLIB_SRC_DIR)/%.c | $(OUT_DIR_VALGRIND
 
 # Build all Valgrind test executables
 build_testlib_valgrind: $(TESTLIB_TEST_EXES_VALGRIND)
-	@echo "Valgrind build successful."
+	@printf "\nValgrind build $(COLOR_GREEN)successful$(END_COLOR)."
 
 # Run all tests under Valgrind
 test_testlib_valgrind: build_testlib_valgrind
@@ -134,12 +142,12 @@ test_testlib_valgrind: build_testlib_valgrind
 	@failed_tests=""; \
 	export LD_LIBRARY_PATH="$(shell pwd)/$(TEST_LIB_DIR_VALGRIND):${LD_LIBRARY_PATH}"; \
 	$(foreach test,$(TESTLIB_TEST_EXES_VALGRIND), \
-		printf "%s ... " $$(basename $$(basename $(test) .test_internal)); \
-		if output=$$($(VALGRIND_COMMAND) ./$(test)); then \
-			echo "Ok"; \
+		printf "$(COLOR_BLUE)%s$(COLOR_YELLOW) ... " $$(basename $$(basename $(test) .test_internal)); \
+		if output=$$($(VALGRIND_COMMAND) ./$(test) 2>&1); then \
+			echo "$(COLOR_GREEN)Ok$(END_COLOR)"; \
 		else \
-			echo "Fail"; \
-			failed_tests="$$failed_tests\n$$(basename $$(basename $(test) .test_internal))\n$$output\n"; \
+			echo "$(COLOR_RED)Fail$(END_COLOR)"; \
+			failed_tests="$$failed_tests\n$(COLOR_RED)$$(basename $$(basename $(test) .test_internal))$(END_COLOR)\n$$output\n"; \
 		fi; \
 	) \
 	if [ -n "$$failed_tests" ]; then \
