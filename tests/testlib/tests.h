@@ -4,8 +4,11 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+#define TEST_BEGIN int ASSERTS_EXIT_CODE = 0
+#define TEST_END return ASSERTS_EXIT_CODE
+
 // Function type for test functions
-typedef void (*test_func_t)(void);
+typedef int (*test_func_t)(void);
 
 // Type for Individual tests
 typedef struct Test Test;

@@ -11,12 +11,11 @@
 extern int ASSERTS_EXIT_CODE;
 
 #ifdef FAIL_FAST
-
   #define ASSERTION_FAILED(...) do {\
       fprintf(stderr, "Assertion Failed! %s:%d | ", __func__, __LINE__);\
       fprintf(stderr, __VA_ARGS__);\
       ASSERTS_EXIT_CODE = 1;\
-      return;\
+      return ASSERTS_EXIT_CODE;\
   } while(0)
 
 #else
