@@ -622,6 +622,19 @@ void dry_run(TestSuite* suite, FILE* handle) {
     }
 }
 
+void run_test(void* args) {
+    TestThreadArgs* test = (TestThreadArgs*) args;
+
+    ASSERTS_EXIT_CODE = 0;
+    test->suite->tests[test->idx]->func();
+
+    if (ASSERTS_EXIT_CODE != 0) {
+        test->result = FAILURE;
+    } else {
+        test->result = SUCCESS;
+    }
+}
+
 // Runs all included tests in parallel
 // Assumes suite is a well formed object, and handle is valid
 TestResults run_tests_parallel(TestSuite const* suite, FILE* handle) {
