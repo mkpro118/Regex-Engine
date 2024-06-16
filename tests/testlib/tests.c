@@ -32,6 +32,12 @@ enum TestResult {
     TIMEOUT,
 };
 
+typedef struct TestThreadArgs {
+    TestSuite* suite;
+    size_t idx;
+    enum TestResult result;
+} TestThreadArgs;
+
 typedef struct TestResults {
     Test* test;
     enum TestResult result;
