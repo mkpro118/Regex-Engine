@@ -32,6 +32,16 @@ enum TestResult {
     TIMEOUT,
 };
 
+char* TEST_RESULT_STR[] = {
+    "Aborted",
+    "Failed",
+    "Skipped",
+    "Passed",
+    "Timed out",
+};
+
+size_t const N_RESULT_VARIANTS = sizeof(TEST_RESULT_STR) / sizeof(char*);
+
 typedef struct TestThreadArgs {
     TestSuite* suite;
     size_t idx;
@@ -625,10 +635,9 @@ void dry_run(TestSuite* suite, FILE* handle) {
 void run_test(void* args) {
     TestThreadArgs* test = (TestThreadArgs*) args;
 
-    ASSERTS_EXIT_CODE = 0;
-    test->suite->tests[test->idx]->func();
+    int exit_code = test->suite->tests[test->idx]->func();
 
-    if (ASSERTS_EXIT_CODE != 0) {
+    if (exit_code != 0) {
         test->result = FAILURE;
     } else {
         test->result = SUCCESS;
@@ -637,16 +646,79 @@ void run_test(void* args) {
 
 // Runs all included tests in parallel
 // Assumes suite is a well formed object, and handle is valid
-TestResults run_tests_parallel(TestSuite const* suite, FILE* handle) {
+TestSuiteResults run_tests_parallel(TestSuite const* suite, FILE* handle) {
     fprintf(stdout, "lol %p, %p\n", (void*)suite, (void*)handle);
-    return (TestResults) {0};
+    return (TestSuiteResults) {0};
 }
 
 // Runs all included tests sequentially
 // Assumes suite is a well formed object, and handle is valid
-TestResults run_tests_sequential(TestSuite const* suite, FILE* handle) {
-    fprintf(stdout, "lol %p, %p\n", (void*)suite, (void*)handle);
-    return (TestResults) {0};
+TestSuiteResults run_tests_sequential(TestSuite const* suite, FILE* handle) {
+    TestResults* results = malloc(sizeof(TestResults) * suite->n_tests);
+    if (results == NULL) {
+        fprintf(handle, "Critcal Error. errno: %d strerror: %s\n", errno, strerror(errno));
+        exit(1);
+    }
+
+    TestSuiteResults suite_results = {
+        .suite = (TestSuite*) suite,
+        .results = results,
+    };
+
+    TestThreadArgs args = {
+        .suite = suite_results.suite,
+        .idx = 0,
+        .result = SKIPPED,
+    };
+
+    int verbosity = suite->opts->verbose;
+    if (verbosity > 0) {
+        fprintf(handle, "\n");
+    }
+
+    for (size_t i = 0; i < suite->n_tests; i++) {
+        args.idx = i;
+        run_test(&args);
+        results[i] = (TestResults) {
+            .test = suite->tests[i],
+            .result = args.result,
+        };
+
+        if (verbosity == 1) {
+            char indicator;
+
+            switch (args.result) {
+            case ABORTED:
+                indicator = 'A';
+                break;
+            case FAILURE:
+                indicator = 'F';
+                break;
+            case SKIPPED:
+                indicator = 'S';
+                break;
+            case SUCCESS:
+                indicator = '.';
+                break;
+            case TIMEOUT:
+                indicator = 'T';
+                break;
+            default:
+                fprintf(handle, "\nCritical runtime error. errno: %d, strerror: %s\n",
+                        errno, strerror(errno));
+                exit(1);
+            }
+
+            fprintf(handle, "%c", indicator);
+            fflush(handle);
+        }
+    }
+
+    if (verbosity > 0) {
+        fprintf(handle, "\n");
+    }
+
+    return suite_results;
 }
 
 // Runs the set of tests specified by the current test suite
@@ -654,6 +726,7 @@ int run_test_suite(TestSuite const* test_suite) {
     // Assume that options were given
     unsigned char opts_missing = 0;
     TestSuite suite = *test_suite;
+    int n_failures = 0;
 
     if (suite.opts == NULL) { // If options were not provided, use defaults
         opts_missing = 1; // options were not given
@@ -661,11 +734,9 @@ int run_test_suite(TestSuite const* test_suite) {
         parse_test_opts(suite.opts, NULL, 0);
     }
 
-    FILE* handle;
+    FILE* handle = stdout; // Default to using stdout
     if (suite.opts->output_file != NULL) {
         handle = fopen(suite.opts->output_file, "w");
-    } else {
-        handle = stdout;
     }
 
     if (suite.opts->dry_run) {
@@ -673,10 +744,32 @@ int run_test_suite(TestSuite const* test_suite) {
         return 0;
     }
 
-    if (suite.opts->parallel) {
-        run_tests_parallel(&suite, handle);
-    } else {
-        run_tests_sequential(&suite, handle);
+    // These run_test_* function perform expensive setup operations
+    // Only run them if there actually are tests to run
+    if (suite.n_tests > 0) {
+        TestSuiteResults suite_results;
+        if (suite.opts->parallel) {
+            suite_results = run_tests_parallel(&suite, handle);
+        } else {
+            suite_results = run_tests_sequential(&suite, handle);
+        }
+
+        int stats[N_RESULT_VARIANTS];
+        memset(stats, 0, sizeof(stats));
+
+        // Count each type of result
+        for (size_t i = 0; i < suite.n_tests; i++) {
+            stats[suite_results.results[i].result]++;
+        }
+
+        // Everything that didn't succeed or wasn't skipped is a failure
+        n_failures = suite.n_tests - (stats[SUCCESS] + stats[SKIPPED]);
+
+        for (size_t i = 0; i < N_RESULT_VARIANTS; i++) {
+            fprintf(handle, "%s: %d\n", TEST_RESULT_STR[i], stats[i]);
+        }
+
+        free(suite_results.results);
     }
 
     // If options were not given, we must have allocated them
@@ -686,5 +779,6 @@ int run_test_suite(TestSuite const* test_suite) {
         free(suite.opts); // So free it here
         suite.opts = NULL; // Reset memory
     }
-    return 0;
+
+    return n_failures;
 }
