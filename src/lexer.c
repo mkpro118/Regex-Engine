@@ -86,7 +86,7 @@ int next_token(Lexer* lexer, Token* token) {
 
 // Fills the given buffer with at most buf_size Tokens
 int tokenize(Lexer* lexer, Token* buf, size_t buf_size) {
-    int n_tokens = 0; // Number of tokens filled
+    size_t n_tokens = 0; // Number of tokens filled
 
     for (; n_tokens < buf_size; n_tokens++) {
         // if next_token fails, then tokenize fails
@@ -95,7 +95,7 @@ int tokenize(Lexer* lexer, Token* buf, size_t buf_size) {
         }
 
         // Stop scanning after EOF, exiting early
-        if (buf[n_tokens].type == EOF) {
+        if (buf[n_tokens].type == EOF_) {
             break;
         }
     }
