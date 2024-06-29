@@ -91,7 +91,7 @@ $(OUT_DIR_ASAN)/%.test_internal: $(TESTLIB_SRC_DIR)/%.c | $(OUT_DIR_ASAN) $(TEST
 
 # Build all ASan test executables
 build_testlib_asan: $(TESTLIB_TEST_EXES_ASAN)
-	@printf "\nASan build $(COLOR_GREEN)successful$(END_COLOR)."
+	@printf "\nASan build $(COLOR_GREEN)successful$(END_COLOR).\n"
 
 # Run all ASan tests
 test_testlib_asan: build_testlib_asan
@@ -134,7 +134,7 @@ $(OUT_DIR_VALGRIND)/%.test_internal: $(TESTLIB_SRC_DIR)/%.c | $(OUT_DIR_VALGRIND
 
 # Build all Valgrind test executables
 build_testlib_valgrind: $(TESTLIB_TEST_EXES_VALGRIND)
-	@printf "\nValgrind build $(COLOR_GREEN)successful$(END_COLOR)."
+	@printf "\nValgrind build $(COLOR_GREEN)successful$(END_COLOR).\n"
 
 # Run all tests under Valgrind
 test_testlib_valgrind: build_testlib_valgrind
