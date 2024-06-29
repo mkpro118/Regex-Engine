@@ -7,27 +7,24 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
    //define something for Windows (32-bit and 64-bit, this part is common)
 
-char* strdup(const char* source) {
-    int len = strlen(source);
-    char* dest = malloc(sizeof(char) * (len + 1));
-
-    if (dest == NULL) {
-        return NULL;
-    }
-
-    strncpy(dest, source, len);
-    dest[len] = '\0'; // Nul-terminator
-    return dest;
-}
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+    char* strdup(const char* source);
 
 #elif __unix__ // all unices not caught above
-    // Unix
+    #include <unistd.h>
 #elif defined(_POSIX_VERSION)
-    // POSIX
+    #include <unistd.h>
 #else
 #error "Unknown compiler"
 #endif
 
-typedef int make_iso_compilers_happy;
+#endif // _REGEX_PORTABILITY_H_
 
-#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+
+
+int n_processors_online();

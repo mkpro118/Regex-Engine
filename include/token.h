@@ -1,3 +1,6 @@
+#ifndef _TOKEN_H_
+#define _TOKEN_H_
+
 typedef enum TokenType {
     CHAR,
     LPAREN,
@@ -16,3 +19,5 @@ typedef struct Token {
 } Token;
 
 const char* str_token(Token* token);
+
+#endif // _TOKEN_H_
