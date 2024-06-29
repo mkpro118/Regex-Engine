@@ -1,0 +1,101 @@
+name: Regex Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test_build_asan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name Build TestLib Library with ASan
+        run: make build_testlib_asan
+
+      - name: Build Regex Library with ASan
+        run: make build_asan
+
+      - name: Build the Tests with ASan
+        run: make build_tests_asan
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-binaries-asan
+          path: |
+            out/asan/*.test
+            out/asan/*.so
+            testlib/asan/*.so
+          if-no-files-found: error  # Fail if no files are found
+
+  test_run_asan:
+    # This ensures that the test job runs only if the build job succeeds
+    needs: test_build_asan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: test-binaries-asan
+
+      - name: Make binaries executable
+        run: chmod +x ${{ github.workspace }}/out/asan/*.test
+
+      - name: Run tests
+        run: make test_asan
+
+  test_build_valgrind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build TestLib Library for valgrind
+        run: make build_testlib_valgrind
+
+      - name: Build Regex Library for valgrind
+        run: make build_valgrind
+
+      - name: Build the Tests for valgrind
+        run: make build_tests_valgrind
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-binaries-valgrind
+          path: |
+            out/valgrind/*.test
+            out/valgrind/*.so
+            testlib/valgrind/*.so
+          if-no-files-found: error  # Fail if no files are found
+
+  test_run_valgrind:
+    # This ensures that the test job runs only if the build job succeeds
+    needs: test_build_valgrind
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install valgrind
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: test-binaries-valgrind
+
+      - name: Make binaries executable
+        run: chmod +x ${{ github.workspace }}/out/valgrind/*.test
+
+      - name: Run tests
+        run: make test_testlib_valgrind
