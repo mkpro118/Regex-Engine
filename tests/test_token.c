@@ -1,22 +1,12 @@
 #include <ctype.h>
 
-#include "asserts.h"
 #include "testlib/asserts.h"
 #include "testlib/tests.h"
 #include "token.h"
 
-// CHAR,
-// LPAREN,
-// OR,
-// PLUS,
-// QUESTION,
-// RPAREN,
-// STAR,
-// EOF,
-// ERROR,
-
 int test_str_token_char(void) {
-    for (unsigned char c = 0; c <= 127; c++) {
+    TEST_BEGIN;
+    for (unsigned char c = 32; c <= 127; c++) {
         // We do not try non printable characters
         if (!isprint(c)) {
             continue;
@@ -27,8 +17,10 @@ int test_str_token_char(void) {
         char expected[] = {'C', 'H', 'A', 'R', '(', '\'', c, '\'', ')', '\0'};
         const char* actual = str_token(&token);
         assert_equals_str(expected, actual);
+
+
     }
-    return 0;
+    TEST_END;
 }
 
 #define test_str_token_for(for_, type_, expected_) \
