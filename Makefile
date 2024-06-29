@@ -230,12 +230,12 @@ test_valgrind: build_tests_valgrind
 	@failed_tests=""; \
 	export LD_LIBRARY_PATH="$(shell pwd)/$(TEST_LIB_DIR_VALGRIND):$(shell pwd)/$(OUT_DIR_VALGRIND):${LD_LIBRARY_PATH}"; \
 	$(foreach test,$(TEST_EXES_VALGRIND), \
-		printf "$(COLOR_BLUE)%s$(COLOR_YELLOW) ... " $$(basename $$(basename $(test) .test_internal)); \
+		printf "$(COLOR_BLUE)%s$(COLOR_YELLOW) ... " $$(basename $$(basename $(test) .test)); \
 		if output=$$($(VALGRIND_COMMAND) ./$(test) 2>&1); then \
 			echo "$(COLOR_GREEN)Ok$(END_COLOR)"; \
 		else \
 			echo "$(COLOR_RED)Fail$(END_COLOR)"; \
-			failed_tests="$$failed_tests\n$(COLOR_RED)$$(basename $$(basename $(test) .test_internal))$(END_COLOR)\n$$output\n"; \
+			failed_tests="$$failed_tests\n$(COLOR_RED)$$(basename $$(basename $(test) .test))$(END_COLOR)\n$$output\n"; \
 		fi; \
 	) \
 	if [ -n "$$failed_tests" ]; then \
