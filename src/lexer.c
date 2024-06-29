@@ -18,6 +18,10 @@ Lexer* lexer_create(char* regex) {
     return lexer;
 }
 
+void lexer_free(Lexer* lexer) {
+    free((void*) lexer->_regex);
+}
+
 // Initialize a Lexer with the given regex
 int lexer_init(Lexer* lexer, char* regex) {
     char* cpy = strdup(regex);
@@ -28,7 +32,7 @@ int lexer_init(Lexer* lexer, char* regex) {
 
     lexer->_regex = cpy;
     lexer->_position = 0;
-    lexer->_regex_lex = strlen(cpy);
+    lexer->_regex_len = strlen(cpy);
 
     return 0;
 }
@@ -38,7 +42,7 @@ int lexer_init(Lexer* lexer, char* regex) {
 int next_token(Lexer* lexer, Token* token) {
     token->value = 0; // Reset token value regardless
 
-    if (lexer->_position >= lexer->_regex_lex) {
+    if (lexer->_position >= lexer->_regex_len) {
         token->type = EOF;
         return 0;
     }
@@ -86,7 +90,7 @@ int next_token(Lexer* lexer, Token* token) {
 
 // Fills the given buffer with at most buf_size Tokens
 int tokenize(Lexer* lexer, Token* buf, size_t buf_size) {
-    int n_tokens = 0; // Number of tokens filled
+    size_t n_tokens = 0; // Number of tokens filled
 
     for (; n_tokens < buf_size; n_tokens++) {
         // if next_token fails, then tokenize fails
@@ -95,7 +99,7 @@ int tokenize(Lexer* lexer, Token* buf, size_t buf_size) {
         }
 
         // Stop scanning after EOF, exiting early
-        if (buf[n_tokens].type == EOF) {
+        if (buf[n_tokens].type == EOF_) {
             break;
         }
     }
@@ -105,7 +109,7 @@ int tokenize(Lexer* lexer, Token* buf, size_t buf_size) {
 
 // Returns dynamically allocated array of all the tokens from the given lexer
 Token* tokenize_all(Lexer* lexer, size_t* size) {
-    int remaining_chars = lexer->_regex_lex - lexer->_position;
+    int remaining_chars = lexer->_regex_len - lexer->_position;
 
     if (remaining_chars <= 0) {
         *size = 0;

@@ -15,7 +15,7 @@
 typedef struct Lexer {
     const char* _regex;
     size_t _position;
-    size_t _regex_lex;
+    size_t _regex_len;
 } Lexer;
 
 
@@ -27,6 +27,13 @@ typedef struct Lexer {
  * @return A pointer to a heap allocated lexer
  */
 Lexer* lexer_create(char* regex);
+
+/**
+ * Releases memory used by the given lexer.
+ *
+ * @param  lexer The lexer to deallocate
+ */
+void lexer_free(Lexer* lexer);
 
 /**
  * Initializes a lexer given a regex string

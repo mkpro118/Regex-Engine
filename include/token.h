@@ -9,7 +9,7 @@ typedef enum TokenType {
     QUESTION,
     RPAREN,
     STAR,
-    EOF,
+    EOF_,
     ERROR,
 } TokenType;
 
