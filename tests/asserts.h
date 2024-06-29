@@ -1,3 +1,6 @@
+// This file is an extension of the "testlib/asserts.h"
+// header, to include specific asserts for the regex types
+
 #ifndef _REGEX_ASSERTS_H_
 #define _REGEX_ASSERTS_H_
 
