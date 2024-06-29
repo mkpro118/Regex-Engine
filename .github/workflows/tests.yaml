@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name Build TestLib Library with ASan
+      - name: Build TestLib Library with ASan
         run: make build_testlib_asan
 
       - name: Build Regex Library with ASan
