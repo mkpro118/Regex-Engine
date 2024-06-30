@@ -378,8 +378,71 @@ int test_parse_term(void) {
     TEST_END;
 }
 
+// Test parse_expr
+// Production rule for factor is
+//     non terminal  ::  expr -> term | term OR term
+//
+// This results in two cases
+//  - expr expands to a single term
+//  - expr expands to a alternation of two terms
 int test_parse_expr(void) {
     TEST_BEGIN;
+    // We will use a simpler regex for this test
+
+    // Case: expr -> term
+    {
+        char regex[] = "a*";
+
+        CREATE_PARSER;
+
+        ASTNode* node = parse_expr(&parser);
+        assert_is_not_null(node);
+        assert_equals_int(parser.position, 2);
+
+        assert_equals_int(node->type, STAR_NODE);
+
+        // Check child
+        assert_is_not_null(node->child1);
+        assert_equals_int(node->child1->type, CHAR_NODE);
+        assert_equals_int(node->child1->extra.character, 'a');
+
+        ast_node_free(node);
+        DESTROY_PARSER;
+    }
+
+    // Case: expr -> term OR term
+    {
+        // This regex actually checks precedence too,
+        // the star should be associated with 'b', not the "a|b"
+        char regex[] = "a|b*";
+
+        CREATE_PARSER;
+
+        ASTNode* node = parse_expr(&parser);
+        assert_is_not_null(node);
+        assert_equals_int(parser.position, 3);
+
+        assert_equals_int(node->type, OR_NODE);
+
+        // Check left child
+        assert_is_not_null(node->child1);
+        assert_equals_int(node->child1->type, CHAR_NODE);
+        assert_equals_int(node->child1->extra.character, 'a');
+
+        // Check right child
+        ASTNode* star = node->extra.child2;
+        assert_is_not_null(star);
+        assert_equals_int(star->type, STAR_NODE);
+
+        // Check star node's child
+        ASTNode* star_child = star->child1;
+        assert_is_not_null(star_child);
+        assert_equals_int(star_child->type, CHAR_NODE);
+        assert_equals_int(star_child->extra.character, 'b');
+
+        ast_node_free(node);
+        DESTROY_PARSER;
+    }
 
     TEST_END;
 }
@@ -387,6 +450,79 @@ int test_parse_expr(void) {
 // Test parse
 int test_parse(void) {
     TEST_BEGIN;
+    // We will attempt to create all types of AST Nodes here
+
+    char regex[] = "(ab?)|c*|d+";
+
+    /* This will result in an AST that looks like
+     *
+     * Level 0:                 OR
+     *                          |
+     *                +---------+---------+
+     *                |                   |
+     * Level 1:      CONCAT               OR
+     *                |                   |
+     *           +----+----+        +-----+----+
+     *           |         |        |          |
+     * Level 2: CHAR(a)  QUESTION   STAR      PLUS
+     *                     |        |          |
+     * Level 3:          CHAR(b)   CHAR(c)   CHAR(d)
+     */
+
+    // Manually create the AST
+    // Nodes created by characters
+    ASTNode chars[] = {
+        {.type=CHAR, .extra={.character='a'}},
+        {.type=CHAR, .extra={.character='b'}},
+        {.type=CHAR, .extra={.character='c'}},
+        {.type=CHAR, .extra={.character='d'}},
+    };
+
+    // Nodes created by operators
+    ASTNode ops[] = {
+        {.type = QUESTION_NODE, .child1=&chars[1], .extra={0}},
+        {.type = STAR_NODE, .child1=&chars[2], .extra={0}},
+        {.type = PLUS_NODE, .child1=&chars[3], .extra={0}},
+        {.type = CONCAT_NODE, .child1=NULL, .extra={0}},
+        {.type = OR_NODE, .child1=NULL, .extra={0}},
+        {.type = OR_NODE, .child1=NULL, .extra={0}},
+    };
+
+    // Setup CONCAT Node
+    ops[3].child1 = &chars[0];      // Character('a') node
+    ops[3].extra.child2 = &ops[0];  // Question("b?") node
+
+    // Setup the second or rightmost OR Node (for "c*|d+")
+    ops[4].child1 = &ops[1];        // Star("c*") node
+    ops[4].extra.child2 = &ops[2];  // Plus("d+") node
+
+    // Setup the first or leftmost OR Node
+    ops[5].child1 = &ops[3];        // Concat("ab?") node
+    ops[5].extra.child2 = &ops[4];  // Or("c*|d+") node
+
+    // Start test
+    CREATE_PARSER;
+
+    // Testing using a DFS traversal on the resulting AST
+
+    ASTNode* root = parse(&parser);
+
+    // Level 0: Check the root
+    assert_is_not_null(root);
+    assert_equals_int(root->type, ops[5].type); // Root should be OR node
+
+    // Root node's children should not be null
+    assert_is_not_null(root->child1);
+    assert_is_not_null(root->extra.child2);
+
+    // Level 1: Check root node's left child, i.e concat node
+    ASTNode* concat = root->child1;
+    assert_equals_int(concat->type, ops[5].child1->type);
+
+    
+
+    ast_node_free(root);
+    DESTROY_PARSER;
     TEST_END;
 }
 
