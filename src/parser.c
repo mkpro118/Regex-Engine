@@ -3,6 +3,13 @@
 #include "parser.h"
 #include "token.h"
 
+// Forward declaration of parsing functions
+ASTNode* parse_base(Parser* parser);
+ASTNode* parse_factor(Parser* parser);
+ASTNode* parse_term(Parser* parser);
+ASTNode* parse_expr(Parser* parser);
+
+
 /**
  * Returns the next token with advancing the parser's position
  *
@@ -64,7 +71,6 @@ int expect(Parser* parser, TokenType type){
 
 
 /**
- * TODO: WIP
  * Parse the `base` non-terminal.
  *
  * See the regex CFG on
@@ -78,7 +84,34 @@ int expect(Parser* parser, TokenType type){
  * @return The root of the AST created by parsing the `base` non-terminal
  */
 ASTNode* parse_base(Parser* parser){
-    return parser != NULL ? NULL : NULL;
+    if (parser == NULL) {
+        return NULL;
+    }
+
+    Token* token = next(parser);
+    ASTNode* node = NULL;
+
+    switch (token->type) {
+    case CHAR:
+        node = ast_node_create(CHAR_NODE);
+        node->extra.character = token->value;
+        break;
+
+    case LPAREN:
+        node = parse_expr(parser);
+
+        if (expect(parser, RPAREN) < 0) {
+            ast_node_free(node);
+            return NULL;
+        }
+
+        break;
+
+    default:
+        // Error
+        return NULL;
+    }
+    return node;
 }
 
 
