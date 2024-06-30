@@ -4,7 +4,6 @@
 #include "token.h"
 
 /**
- * TODO: WIP
  * Returns the next token with advancing the parser's position
  *
  * @param  parser The parser to peek with
@@ -12,12 +11,19 @@
  * @return A pointer to the next token if it exists, NULL otherwise
  */
 Token* peek(Parser* parser){
-    return parser != NULL ? NULL : NULL;
+    if (parser == NULL) {
+        return NULL;
+    }
+
+    if (parser->position >= parser->n_tokens) {
+        return NULL;
+    }
+
+    return &(parser->tokens[parser->position]);
 }
 
 
 /**
- * TODO: WIP
  * Returns the next token and advances the parser's position
  *
  * @param parser The parser to get the next token from
@@ -25,12 +31,19 @@ Token* peek(Parser* parser){
  * @return A pointer to the next token if it exists, NULL otherwise
  */
 Token* next(Parser* parser){
-    return parser != NULL ? NULL : NULL;
+    if (parser == NULL) {
+        return NULL;
+    }
+
+    if (parser->position >= parser->n_tokens) {
+        return NULL;
+    }
+
+    return &(parser->tokens[parser->position++]);
 }
 
 
 /**
- * TODO: WIP
  * Ensure that the next token is of a given type
  *
  * @param  parser The parser to check with
@@ -38,7 +51,15 @@ Token* next(Parser* parser){
  * @return 0 if the next token is of the required type, -1 otherwise
  */
 int expect(Parser* parser, TokenType type){
-    return parser != NULL && type ? 0 : 0;
+    if (parser == NULL) {
+        return -1;
+    }
+
+    if (parser->position >= parser->n_tokens) {
+        return -1;
+    }
+
+    return parser->tokens[parser->position].type == type ? 0 : -1;
 }
 
 
