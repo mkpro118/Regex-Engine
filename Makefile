@@ -107,28 +107,29 @@ $(OUT_DIR_ASAN)/$(REGEX_SO): $(REGEX_SRCS) | $(OUT_DIR_ASAN)
 # Build the test library with ASan
 $(TEST_LIB_DIR_ASAN)/$(TESTLIB_SO): $(TESTLIB_SRCS) | $(TEST_LIB_DIR_ASAN)
 	$(BASE_BUILD_COMMAND_ASAN) -I $(TESTLIB_SRC_DIR) -fPIC -shared -o $@ $^
+	@printf "ASan TestLib build $(COLOR_GREEN)successful$(END_COLOR).\n\n"
 
 # Build each test executable with ASan
 $(OUT_DIR_ASAN)/%.test_internal: $(TESTLIB_SRC_DIR)/%.c | $(OUT_DIR_ASAN) $(TEST_LIB_DIR_ASAN)/$(TESTLIB_SO)
 	$(BASE_BUILD_COMMAND_ASAN) -I $(TESTLIB_SRC_DIR) -o $@ $< -L$(TEST_LIB_DIR_ASAN) -ltest
 
-	# Build each test executable with ASan
+# Build each test executable with ASan
 $(OUT_DIR_ASAN)/%.test: $(TEST_SRC_DIR)/%.c | $(OUT_DIR_ASAN) $(TEST_LIB_DIR_ASAN)/$(TESTLIB_SO) $(OUT_DIR_ASAN)/$(REGEX_SO)
 	$(BASE_BUILD_COMMAND_ASAN) -I $(TESTLIB_SRC_DIR) -o $@ $< -L$(TEST_LIB_DIR_ASAN) -ltest -L$(OUT_DIR_ASAN) -lregex
 
 # Build all ASan test executables
 build_asan: $(OUT_DIR_ASAN)/$(REGEX_SO)
-	@printf "\nASan Library build $(COLOR_GREEN)successful$(END_COLOR).\n"
+	@printf "ASan Library build $(COLOR_GREEN)successful$(END_COLOR).\n\n"
 
 # Build all ASan test executables
 build_tests_asan: $(TEST_EXES_ASAN)
-	@printf "\nASan Tests build $(COLOR_GREEN)successful$(END_COLOR).\n"
+	@printf "ASan Tests build $(COLOR_GREEN)successful$(END_COLOR).\n\n"
 
 build_testlib_asan: $(TESTLIB_TEST_EXES_ASAN)
-	@printf "\nASan build $(COLOR_GREEN)successful$(END_COLOR).\n"
+	@printf "ASan Internal Tests build $(COLOR_GREEN)successful$(END_COLOR).\n\n"
 
 # Run all ASan tests
-test_asan: build_tests_asan build_asan
+test_asan: build_asan build_tests_asan
 	@printf "\n\nRunning ASan tests...\n\n"
 	@failed_tests=""; \
 	export LD_LIBRARY_PATH="$(shell pwd)/$(TEST_LIB_DIR_ASAN):$(shell pwd)/$(OUT_DIR_ASAN):${LD_LIBRARY_PATH}"; \
@@ -185,6 +186,7 @@ $(OUT_DIR_VALGRIND)/$(REGEX_SO): $(REGEX_SRCS) | $(OUT_DIR_VALGRIND)
 # Build the test library for Valgrind (without ASan)
 $(TEST_LIB_DIR_VALGRIND)/$(TESTLIB_SO): $(TESTLIB_SRCS) | $(TEST_LIB_DIR_VALGRIND)
 	$(BASE_BUILD_COMMAND_VALGRIND) -I $(TESTLIB_SRC_DIR) -fPIC -shared -o $@ $^
+	@printf "\nValgrind TestLib build $(COLOR_GREEN)successful$(END_COLOR).\n\n"
 
 # Build each test executable for Valgrind (without ASan)
 $(OUT_DIR_VALGRIND)/%.test: $(TEST_SRC_DIR)/%.c | $(OUT_DIR_VALGRIND) $(OUT_DIR_VALGRIND)/$(REGEX_SO) $(TEST_LIB_DIR_VALGRIND)/$(TESTLIB_SO)
@@ -195,14 +197,14 @@ $(OUT_DIR_VALGRIND)/%.test_internal: $(TESTLIB_SRC_DIR)/%.c | $(OUT_DIR_VALGRIND
 	$(BASE_BUILD_COMMAND_VALGRIND) -I $(TESTLIB_SRC_DIR) -o $@ $< -L$(TEST_LIB_DIR_VALGRIND) -ltest
 
 build_valgrind: $(OUT_DIR_VALGRIND)/$(REGEX_SO)
-	@printf "\nValgrind build $(COLOR_GREEN)successful$(END_COLOR).\n"
+	@printf "\nValgrind Library build $(COLOR_GREEN)successful$(END_COLOR).\n\n"
 
 build_tests_valgrind: $(TEST_EXES_VALGRIND)
-	@printf "\nASan Tests build $(COLOR_GREEN)successful$(END_COLOR).\n"
+	@printf "\nValgrind Tests build $(COLOR_GREEN)successful$(END_COLOR).\n\n"
 
 # Build all Valgrind test executables
 build_testlib_valgrind: $(TESTLIB_TEST_EXES_VALGRIND)
-	@printf "\nValgrind build $(COLOR_GREEN)successful$(END_COLOR).\n"
+	@printf "\nValgrind Internal Tests build $(COLOR_GREEN)successful$(END_COLOR).\n\n"
 
 # Run all tests under Valgrind
 test_testlib_valgrind: build_testlib_valgrind
@@ -225,7 +227,7 @@ test_testlib_valgrind: build_testlib_valgrind
 		printf "\n$(COLOR_GREEN)All tests passed!$(END_COLOR)\n"; \
 	fi
 
-test_valgrind: build_tests_valgrind
+test_valgrind: build_valgrind build_tests_valgrind
 	@printf "\n\nRunning Valgrind tests...\n\n"
 	@failed_tests=""; \
 	export LD_LIBRARY_PATH="$(shell pwd)/$(TEST_LIB_DIR_VALGRIND):$(shell pwd)/$(OUT_DIR_VALGRIND):${LD_LIBRARY_PATH}"; \
