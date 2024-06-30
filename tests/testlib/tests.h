@@ -1,5 +1,5 @@
-#ifndef _RUN_TEST_H_
-#define _RUN_TEST_H_
+#ifndef TESTLIB_TEST_H
+#define TESTLIB_TEST_H
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -166,4 +166,4 @@ void free_test_suite(TestSuite const* suite);
  */
 int run_test_suite(TestSuite const* suite);
 
-#endif // _RUN_TEST_H_
+#endif // TESTLIB_TEST_H

@@ -1,5 +1,5 @@
-#ifndef _TOKEN_H_
-#define _TOKEN_H_
+#ifndef REGEX_TOKEN_H
+#define REGEX_TOKEN_H
 
 typedef enum TokenType {
     CHAR,
@@ -20,4 +20,4 @@ typedef struct Token {
 
 const char* str_token(Token* token);
 
-#endif // _TOKEN_H_
+#endif // REGEX_TOKEN_H

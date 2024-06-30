@@ -1,5 +1,5 @@
-#ifndef _LEXER_H_
-#define _LEXER_H_
+#ifndef REGEX_LEXER_H
+#define REGEX_LEXER_H
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -81,4 +81,4 @@ int tokenize(Lexer* lexer, Token* buf, size_t buf_size);
  */
 Token* tokenize_all(Lexer* lexer, size_t* size);
 
-#endif
+#endif // REGEX_LEXER_H
