@@ -119,7 +119,22 @@ ASTNode* parse_expr(Parser* parser){
 
 // Create a heap allocated parser from the given Lexer
 Parser* parser_create(Lexer* lexer) {
-    return lexer != NULL ? NULL : NULL;
+    Parser* parser = malloc(sizeof(Parser));
+
+    if (parser == NULL) {
+        return NULL;
+    }
+
+    parser->tokens = tokenize_all(lexer, &parser->n_tokens);
+
+    if (parser->tokens == NULL || parser->n_tokens <= 0) {
+        free(parser);
+        return NULL;
+    }
+
+    parser->position = 0;
+
+    return parser;
 }
 
 // Initialize the given parse using the given Lexer
