@@ -166,4 +166,23 @@ void free_test_suite(TestSuite const* suite);
  */
 int run_test_suite(TestSuite const* suite);
 
+/**
+ * Default entrypoint for test files
+ *
+ * The opts param must be the same arguments as to parse_opts
+ * When using default_main, it is recommended to use it as
+ *
+ * ```c
+ * int main(int argc, char* argv[]) {
+ *     return default_main(&argv[1], argc - 1);
+ * }
+ * ```
+ *
+ * @param  opts      Test options
+ * @param  opts_size Size of the opts array
+ *
+ * @return Number of test failures
+ */
+int default_main(char** opts, size_t opts_size);
+
 #endif // TESTLIB_TEST_H
