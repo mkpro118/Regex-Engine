@@ -11,7 +11,9 @@
  *
  * @return A pointer to the next token if it exists, NULL otherwise
  */
-Token* peek(Parser* parser);
+Token* peek(Parser* parser){
+    return parser != NULL ? NULL : NULL;
+}
 
 
 /**
@@ -22,7 +24,9 @@ Token* peek(Parser* parser);
  *
  * @return A pointer to the next token if it exists, NULL otherwise
  */
-Token* next(Parser* parser);
+Token* next(Parser* parser){
+    return parser != NULL ? NULL : NULL;
+}
 
 
 /**
@@ -33,7 +37,9 @@ Token* next(Parser* parser);
  *
  * @return 0 if the next token is of the required type, -1 otherwise
  */
-int expect(Parser* parser, TokenType type);
+int expect(Parser* parser, TokenType type){
+    return parser != NULL && type ? 0 : 0;
+}
 
 
 /**
@@ -50,7 +56,9 @@ int expect(Parser* parser, TokenType type);
  *
  * @return The root of the AST created by parsing the `base` non-terminal
  */
-ASTNode* parse_base(Parser* parser);
+ASTNode* parse_base(Parser* parser){
+    return parser != NULL ? NULL : NULL;
+}
 
 
 /**
@@ -67,7 +75,9 @@ ASTNode* parse_base(Parser* parser);
  *
  * @return The root of the AST created by parsing the `factor` non-terminal
  */
-ASTNode* parse_factor(Parser* parser);
+ASTNode* parse_factor(Parser* parser){
+    return parser != NULL ? NULL : NULL;
+}
 
 
 /**
@@ -84,7 +94,9 @@ ASTNode* parse_factor(Parser* parser);
  *
  * @return The root of the AST created by parsing the `term` non-terminal
  */
-ASTNode* parse_term(Parser* parser);
+ASTNode* parse_term(Parser* parser){
+    return parser != NULL ? NULL : NULL;
+}
 
 
 /**
@@ -101,4 +113,28 @@ ASTNode* parse_term(Parser* parser);
  *
  * @return The root of the AST created by parsing the `expr` non-terminal
  */
-ASTNode* parse_expr(Parser* parser);
+ASTNode* parse_expr(Parser* parser){
+    return parser != NULL ? NULL : NULL;
+}
+
+// Create a heap allocated parser from the given Lexer
+Parser* parser_create(Lexer* lexer) {
+    return lexer != NULL ? NULL : NULL;
+}
+
+// Initialize the given parse using the given Lexer
+int parser_init(Parser* parser, Lexer* lexer) {
+    return (void*)parser != (void*)lexer ? 0 : 0;
+}
+
+// Release the memory used by this parser.
+void parser_free(Parser* parser) {
+    if (parser)
+        return;
+    return;
+}
+
+// Create a AST by parsing the tokens in the given parser
+ASTNode* parse(Parser* parser) {
+    return parser != NULL ? NULL : NULL;
+}
