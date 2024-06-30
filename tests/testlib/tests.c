@@ -782,3 +782,22 @@ int run_test_suite(TestSuite const* test_suite) {
 
     return n_failures;
 }
+
+// Default entrypoint for test files
+int default_main(char** argv, size_t argc) {
+    TestOpts opts;
+    int ret = parse_test_opts(&opts, argv, argc);
+    if (ret != 0) {
+        fprintf(stderr, "%s\n", str_parse_error(ret));
+        exit(1);
+    }
+
+    const TestSuite* suite = create_test_suite(&opts);
+
+    int n_failures = run_test_suite(suite);
+
+    free_opts(&opts);
+    free_test_suite(suite);
+
+    return n_failures;
+}
