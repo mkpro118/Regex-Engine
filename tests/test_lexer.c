@@ -4,8 +4,8 @@
 #include "token.h"
 #include "lexer.h"
 
-#define _TOKEN_TESTS_
-#define _LEXER_TESTS_
+#define REGEX_TOKEN_TESTS
+#define REGEX_LEXER_TESTS
 #include "asserts.h"
 
 // Tests creation of a dynamically allocated lexer
