@@ -146,9 +146,11 @@ int parser_init(Parser* parser, Lexer* lexer) {
 
 // Release the memory used by this parser.
 void parser_free(Parser* parser) {
-    if (parser)
+    if (parser == NULL) {
         return;
-    return;
+    }
+
+    free(parser->tokens);
 }
 
 // Create a AST by parsing the tokens in the given parser
