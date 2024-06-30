@@ -6,13 +6,14 @@
 #define REGEX_TOKEN_TESTS
 #include "asserts.h"
 
+#include "ast.h"
 #include "lexer.h"
 #include "parser.h"
 
 // Internal functions from parser.c
 Token* peek(Parser* parser);
 Token* next(Parser* parser);
-int expect(Parser* parser, ASTNodeType type);
+int expect(Parser* parser, TokenType type);
 ASTNode* parse_base(Parser* parser);
 ASTNode* parse_factor(Parser* parser);
 ASTNode* parse_term(Parser* parser);
@@ -24,6 +25,15 @@ char regex[] = "(a|b)*c";
 Lexer lexer;
 Parser parser;
 
+#define CREATE_PARSER do {\
+lexer_init(&lexer, regex);\
+parser_init(&parser, &lexer);\
+} while (0)
+
+#define DESTROY_PARSER do {\
+lexer_free(&lexer);\
+parser_free(&parser);\
+} while (0)
 
 // Tests below
 
@@ -47,25 +57,20 @@ int test_parser_create(void) {
 // Test parser_init
 int test_parser_init(void) {
     TEST_BEGIN;
-
-    lexer_init(&lexer, regex);
-    parser_init(&parser, &lexer);
+    CREATE_PARSER;
 
     assert_is_not_null(parser.tokens);
     assert_equals_int(parser.n_tokens, strlen(regex));
     assert_equals_int(parser.position, 0);
 
-    lexer_free(&lexer);
-    parser_free(&parser);
+    DESTROY_PARSER;
     TEST_END;
 }
 
 // Test peek
 int test_peek(void) {
     TEST_BEGIN;
-
-    lexer_init(&lexer, regex);
-    parser_init(&parser, &lexer);
+    CREATE_PARSER;
 
     Token* token = peek(&parser);
     assert_is_not_null(token);
@@ -94,16 +99,14 @@ int test_peek(void) {
     assert_is_null(token);
     assert_equals_int(parser.position, bad_pos);
 
-    lexer_free(&lexer);
-    parser_free(&parser);
+    DESTROY_PARSER;
     TEST_END;
 }
 
 // Test next
 int test_next(void) {
     TEST_BEGIN;
-    lexer_init(&lexer, regex);
-    parser_init(&parser, &lexer);
+    CREATE_PARSER;
 
     Token* token = next(&parser);
     assert_is_not_null(token);
@@ -134,38 +137,250 @@ int test_next(void) {
     assert_is_null(token);
     assert_equals_int(parser.position, bad_pos);
 
-    lexer_free(&lexer);
-    parser_free(&parser);
+    DESTROY_PARSER;
     TEST_END;
 }
 
 // Test expect
 int test_expect(void) {
     TEST_BEGIN;
+    CREATE_PARSER;
+
+    TokenType expected = LPAREN;
+
+    int ret = expect(&parser, expected);
+    assert_equals_int(ret, 0);
+    assert_equals_int(parser.position, 0);
+
+    // Something that was not expected
+    ret = expect(&parser, CHAR);
+    assert_equals_int(ret, -1);
+    assert_equals_int(parser.position, 0);
+
+    // Bad input
+    ret = expect(NULL, CHAR);
+    assert_equals_int(ret, -1);
+
+    // Move the parser's position and try
+    parser.position++;
+    ret = expect(&parser, CHAR);
+    assert_equals_int(ret, 0);
+
+    // Not the expected token
+    ret = expect(&parser, LPAREN);
+    assert_equals_int(ret, -1);
+
+    DESTROY_PARSER;
     TEST_END;
 }
 
 // Test parse_base
+// This has two cases
+//  - base expands to a CHAR
+//  - base expands to a LPAREN expr RPAREN
 int test_parse_base(void) {
     TEST_BEGIN;
+    // We will use a simpler regex for this test
+
+    // Case 1: base expands to a CHAR
+    {
+        char regex[] = "abc";
+        size_t len = strlen(regex);
+
+        CREATE_PARSER;
+
+        for (char* c = regex; c < &regex[len]; c++) {
+            ASTNode* node = parse_base(&parser);
+            assert_is_not_null(node);
+
+            assert_equals_int(node->type, CHAR_NODE);
+            assert_equals_int(node->extra.character, (*c));
+
+            ast_node_free(node);
+        }
+
+        DESTROY_PARSER;
+    }
+
+    // Case 2: base expands to a LPAREN expr RPAREN
+    // In this case, we are not interested in knowing the value of the
+    // parsed expr, rather we only care that the RPAREN was consumed
+    // Whether or not expr parses correctly is tested in parse_expr
+    {
+        char regex[] = "(abc)*";
+        // Position of the star in the regex above
+        const size_t star_pos = (size_t)(strchr(regex, '*') - regex);
+
+        CREATE_PARSER;
+
+        ASTNode* node = parse_base(&parser);
+        assert_is_not_null(node);
+
+        assert_equals_int(parser.position, star_pos);
+
+        ast_node_free(node);
+        DESTROY_PARSER;
+    }
+
+    // Case 3: Bad Input
+    {
+        ASTNode* node = parse_base(NULL);
+        assert_is_null(node);
+
+        // This regex is not a base non-terminal
+        char regex[] = "*";
+
+        CREATE_PARSER;
+
+        node = parse_base(&parser);
+        assert_is_null(node);
+
+        ast_node_free(node);
+        DESTROY_PARSER;
+    }
+
     TEST_END;
 }
 
 // Test parse_factor
+// Production rule for factor is
+//     non terminal  ::  factor -> base op
+//
+// This has four cases
+//  - op is STAR
+//  - op is PLUS
+//  - op is QUESTION
+//  - op is epsilon
+//
+// Case 4 is effectively testing whether parse_base works,
+// which is tested independently anyway, so we will not do that here
 int test_parse_factor(void) {
     TEST_BEGIN;
+    // We will use a simpler regex for this test
+
+    // Tests only differ in data, but have similar structure
+    // Have the preprocess make them
+    #define TEST_CASE(symbol, name) {\
+        char regex[] = "a" symbol;\
+\
+        CREATE_PARSER;\
+\
+        ASTNode* node = parse_factor(&parser);\
+        assert_is_not_null(node);\
+\
+        assert_equals_int(node->type, name);\
+        assert_is_not_null(node->child1);\
+        assert_equals_int(node->child1->type, CHAR_NODE);\
+        assert_equals_int(node->child1->extra.character, 'a');\
+        assert_equals_int(parser.position, 2);\
+\
+        ast_node_free(node);\
+        DESTROY_PARSER;\
+    }
+
+    // Case: op is STAR
+    TEST_CASE("*", STAR_NODE);
+
+    // Case: op is PLUS
+    TEST_CASE("+", PLUS_NODE);
+
+    // Case: op is QUESTION
+    TEST_CASE("?", QUESTION_NODE);
+
+    #undef TEST_CASE
+
+    // Case: Bad input
+    {
+        ASTNode* node = parse_factor(NULL);
+        assert_is_null(node);
+    }
+
     TEST_END;
 }
 
 // Test parse_term
+// Production rule for factor is
+//     non terminal  ::  term -> factor factor
+//
+// This results in two cases
+//  - Just the factor itself
+//  - Concatenation
+//
+// Case 1 is effectively testing parse_factor, which is tested independently
+// but it will be replicated here because concat does not simply concat
+// under some cases, like the OR token, the RPAREN token etc
 int test_parse_term(void) {
     TEST_BEGIN;
+    // We will use a simpler regex for this test
+
+    // Case: Concatentation of two characters
+    {
+        char regex[] = "ab";
+
+        CREATE_PARSER;
+
+        ASTNode* node = parse_term(&parser);
+        assert_is_not_null(node);
+
+        assert_equals_int(node->type, CONCAT_NODE);
+        assert_equals_int(parser.position, 2);
+
+        // Check left child
+        assert_equals_int(node->child1->type, CHAR_NODE);
+        assert_equals_int(node->child1->extra.character, 'a');
+
+        // Check right child
+        assert_equals_int(node->extra.child2, CHAR_NODE);
+        assert_equals_int(node->extra.child2->extra.character, 'b');
+
+        ast_node_free(node);
+        DESTROY_PARSER;
+    }
+
+    // Case: Strings that do not have a right child for term
+    //       However, it should parse the character 'a'
+    #define TEST_CASE(symbol) {\
+        char regex[] = "a" symbol;\
+\
+        CREATE_PARSER;\
+\
+        ASTNode* node = parse_term(&parser);\
+        assert_is_not_null(node);\
+\
+        assert_equals_int(node->type, CHAR_NODE);\
+        assert_equals_int(node->extra.character, 'a');\
+        assert_equals_int(parser.position, 1);\
+\
+        ast_node_free(node);\
+        DESTROY_PARSER;\
+    }
+
+    // These cases should not be parsed as concatenations
+    // Note that LPAREN and CHAR should be parsed at concatenations
+
+    // Case: RPAREN token
+    TEST_CASE(")")
+
+    // Case: STAR token
+    TEST_CASE("*")
+
+    // Case: PLUS token
+    TEST_CASE("+")
+
+    // Case: QUESTION token
+    TEST_CASE("?")
+
+    // Case: OR token
+    TEST_CASE("|")
+
+    #undef TEST_CASE
+
     TEST_END;
 }
 
-// Test parse_expr
 int test_parse_expr(void) {
     TEST_BEGIN;
+
     TEST_END;
 }
 
