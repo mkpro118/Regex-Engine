@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
-#include <portability.h>
 #include <ctype.h>
 
+#include "portability.h"
 #include "lexer.h"
 
 // Create a Lexer with the given regex
