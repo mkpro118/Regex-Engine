@@ -158,19 +158,5 @@ Test tests[] = {
 };
 
 int main(int argc, char* argv[]) {
-    TestOpts opts;
-    int ret = parse_test_opts(&opts, &argv[1], argc - 1);
-    if (ret != 0) {
-        printf("%s\n", str_parse_error(ret));
-        exit(1);
-    }
-
-    const TestSuite* suite = create_test_suite(&opts);
-
-    int n_failures = run_test_suite(suite);
-
-    free_opts(&opts);
-    free_test_suite(suite);
-
-    return n_failures;
+    return default_main(&argv[1], argc - 1);
 }
