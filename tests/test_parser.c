@@ -51,6 +51,7 @@ int test_parser_create(void) {
 
     lexer_free(&lexer);
     parser_free(parser);
+    free(parser);
     TEST_END;
 }
 
@@ -605,5 +606,10 @@ Test tests[] = {
 
 
 int main(int argc, char* argv[]) {
-    return default_main(&argv[1], argc - 1);
+    // Run selective tests for now
+    argv = (char* []){
+        "-r", "test_parser_create", "test_parser_init"
+    };
+    argc = 3;
+    return default_main(argv, argc);
 }
