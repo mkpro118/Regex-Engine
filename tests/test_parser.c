@@ -447,7 +447,13 @@ int test_parse_expr(void) {
     TEST_END;
 }
 
-// Test parse
+/* Test parse
+ * This is easily one of the most complex tests, and probably should
+ * be refactored. At the time of writing, I'd like to be able to have a
+ * continous flow, and not jump around with sub functions.
+ * I have tried my best to provide a logical flow of the assertions,
+ * with inline comments and hopefully self-commenting code.
+ */
 int test_parse(void) {
     TEST_BEGIN;
     // We will attempt to create all types of AST Nodes here
@@ -472,20 +478,20 @@ int test_parse(void) {
     // Manually create the AST
     // Nodes created by characters
     ASTNode chars[] = {
-        {.type=CHAR, .extra={.character='a'}},
-        {.type=CHAR, .extra={.character='b'}},
-        {.type=CHAR, .extra={.character='c'}},
-        {.type=CHAR, .extra={.character='d'}},
+        {.type=CHAR_NODE, .extra={.character='a'}},
+        {.type=CHAR_NODE, .extra={.character='b'}},
+        {.type=CHAR_NODE, .extra={.character='c'}},
+        {.type=CHAR_NODE, .extra={.character='d'}},
     };
 
     // Nodes created by operators
     ASTNode ops[] = {
         {.type = QUESTION_NODE, .child1=&chars[1], .extra={0}},
-        {.type = STAR_NODE, .child1=&chars[2], .extra={0}},
-        {.type = PLUS_NODE, .child1=&chars[3], .extra={0}},
-        {.type = CONCAT_NODE, .child1=NULL, .extra={0}},
-        {.type = OR_NODE, .child1=NULL, .extra={0}},
-        {.type = OR_NODE, .child1=NULL, .extra={0}},
+        {.type = STAR_NODE,     .child1=&chars[2], .extra={0}},
+        {.type = PLUS_NODE,     .child1=&chars[3], .extra={0}},
+        {.type = CONCAT_NODE,   .child1=NULL,      .extra={0}}, // wired later
+        {.type = OR_NODE,       .child1=NULL,      .extra={0}}, // wired later
+        {.type = OR_NODE,       .child1=NULL,      .extra={0}}, // wired later
     };
 
     // Setup CONCAT Node
@@ -515,13 +521,70 @@ int test_parse(void) {
     assert_is_not_null(root->child1);
     assert_is_not_null(root->extra.child2);
 
-    // Level 1: Check root node's left child, i.e concat node
+    // Level 1: Check root node's left child, i.e Concat node
     ASTNode* concat = root->child1;
-    assert_equals_int(concat->type, ops[5].child1->type);
+    assert_equals_int(concat->type, ops[3].type);
 
-    
+    // Concat's children should not be null
+    assert_is_not_null(concat->child1);
+    assert_is_not_null(concat->extra.child2);
 
-    ast_node_free(root);
+    // Level 2: Check concat's left child, i.e. Char(a) node
+    ASTNode* char_a = concat->child1;
+    assert_equals_int(char_a->type, chars[0].type);
+    assert_equals_int(char_a->extra.character, chars[0].extra.character);
+
+    // Level 2: Check concat's right child, i.e. Question node
+    ASTNode* question = concat->extra.child2;
+    assert_equals_int(question->type, ops[0].type);
+
+    // Question's child should not be null
+    assert_is_not_null(question->child1);
+
+    // Level 3: Check question's child, i.e Char(b) node
+    ASTNode* char_b = question->child1;
+    assert_equals_int(char_b->type, chars[1].type);
+    assert_equals_int(char_b->extra.character, chars[1].extra.character);
+
+    // (Go back up the tree to Level 0 ...)
+
+    // Level 1: Check the root node's right child, i.e. Or("c*|d+") node
+    ASTNode* or = root->extra.child2;
+    assert_equals_int(or->type, ops[4].type);
+
+    // Or's children should not be null
+    assert_is_not_null(or->child1);
+    assert_is_not_null(or->extra.child2);
+
+    // Level 2: Check Or's left child, i.e. Star("c*") node
+    ASTNode* star = or->child1;
+    assert_equals_int(star->type, ops[1].type);
+
+    // Star's child should not be null
+    assert_is_not_null(star->child1);
+
+    // Level 3: Check star's child, i.e. Char(c) node
+    ASTNode* char_c = star->child1;
+    assert_equals_int(char_c->type, chars[2].type);
+    assert_equals_int(char_c->extra.character, chars[2].extra.character);
+
+    // (Go back up the tree to Level 1 ...)
+
+    // Level 2: Check Or's right child, i.e. Plus("d+") node
+    ASTNode* plus = or->extra.child2;
+    assert_equals_int(plus->type, ops[2].type);
+
+    // Plus's child should not be null
+    assert_is_not_null(plus->child1);
+
+    // Level 3: Check Plus's child, i.e. Char(d) node
+    ASTNode* char_d = plus->child1;
+    assert_equals_int(char_d->type, chars[3].type);
+    assert_equals_int(char_d->extra.character, chars[3].extra.character);
+
+    // Done, all nodes of the AST have been tested.
+
+    ast_node_free(root); // This should recursively free all the nodes
     DESTROY_PARSER;
     TEST_END;
 }
