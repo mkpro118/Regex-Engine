@@ -1,11 +1,6 @@
 name: testlib_internal_tests
 
 on:
-  push:
-    paths:
-      - "tests/testlib/*"
-    branches:
-      - main
   pull_request:
     paths:
       - "tests/testlib/*"
