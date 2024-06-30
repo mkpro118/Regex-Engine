@@ -613,7 +613,8 @@ int main() {
         "test_parser_init",
         "test_peek",
         "test_next",
-        "test_expect"
+        "test_expect",
+        "test_parse_base"
     };
     int argc = sizeof(argv) / sizeof(char*);
     return default_main(argv, argc);
