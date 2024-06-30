@@ -24,7 +24,6 @@ Token* peek(Parser* parser){
 
 
 /**
- * TODO: WIP
  * Returns the next token and advances the parser's position
  *
  * @param parser The parser to get the next token from
@@ -32,7 +31,15 @@ Token* peek(Parser* parser){
  * @return A pointer to the next token if it exists, NULL otherwise
  */
 Token* next(Parser* parser){
-    return parser != NULL ? NULL : NULL;
+    if (parser == NULL) {
+        return NULL;
+    }
+
+    if (parser->position >= parser->n_tokens) {
+        return NULL;
+    }
+
+    return &(parser->tokens[parser->position++]);
 }
 
 
