@@ -33,7 +33,7 @@ Token* next(Parser* parser);
  *
  * @return 0 if the next token is of the required type, -1 otherwise
  */
-int expect(Parser* parser, ASTNodeType type);
+int expect(Parser* parser, TokenType type);
 
 
 /**
