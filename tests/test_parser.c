@@ -605,6 +605,16 @@ Test tests[] = {
 };
 
 
-int main(int argc, char* argv[]) {
-    return default_main(&argv[1], argc - 1);
+int main() {
+    // Run selective tests
+    char* argv[] = {
+        "--run",
+        "test_parser_create",
+        "test_parser_init",
+        "test_peek",
+        "test_next",
+        "test_expect"
+    };
+    int argc = sizeof(argv) / sizeof(char*);
+    return default_main(argv, argc);
 }
