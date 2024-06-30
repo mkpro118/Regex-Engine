@@ -2,6 +2,10 @@ name: Regex Tests
 
 on:
   pull_request:
+    paths:
+      - "include/*"
+      - "src/*"
+      - "tests/*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
