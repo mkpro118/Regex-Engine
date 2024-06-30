@@ -121,25 +121,27 @@ ASTNode* parse_expr(Parser* parser){
 Parser* parser_create(Lexer* lexer) {
     Parser* parser = malloc(sizeof(Parser));
 
-    if (parser == NULL) {
-        return NULL;
-    }
-
-    parser->tokens = tokenize_all(lexer, &parser->n_tokens);
-
-    if (parser->tokens == NULL || parser->n_tokens <= 0) {
+    if (parser_init(parser, lexer) < 0) {
         free(parser);
         return NULL;
     }
-
-    parser->position = 0;
 
     return parser;
 }
 
 // Initialize the given parse using the given Lexer
 int parser_init(Parser* parser, Lexer* lexer) {
-    return (void*)parser != (void*)lexer ? 0 : 0;
+    if (parser == NULL) {
+        return -1;
+    }
+
+    parser->tokens = tokenize_all(lexer, &parser->n_tokens);
+
+    if (parser->tokens == NULL || parser->n_tokens <= 0) {
+        return -1;
+    }
+
+    return parser->position = 0;
 }
 
 // Release the memory used by this parser.
