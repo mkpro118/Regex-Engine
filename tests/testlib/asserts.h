@@ -57,7 +57,7 @@ extern int ASSERTS_EXIT_CODE;
 /* Compare pointers, and display a message about the failure */
 #define assert_equals_ptr(a, b, type) do {\
     if (((type) (a)) != ((type) (b))) {\
-        ASSERTION_FAILED("%p != %p\n", (a), (b));\
+        ASSERTION_FAILED("%p != %p\n", (void*) (a), (void*) (b));\
     }\
 } while(0)
 
