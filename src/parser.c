@@ -44,7 +44,6 @@ Token* next(Parser* parser){
 
 
 /**
- * TODO: WIP
  * Ensure that the next token is of a given type
  *
  * @param  parser The parser to check with
@@ -52,7 +51,15 @@ Token* next(Parser* parser){
  * @return 0 if the next token is of the required type, -1 otherwise
  */
 int expect(Parser* parser, TokenType type){
-    return parser != NULL && type ? 0 : 0;
+    if (parser == NULL) {
+        return -1;
+    }
+
+    if (parser->position >= parser->n_tokens) {
+        return -1;
+    }
+
+    return parser->tokens[parser->position].type == type ? 0 : -1;
 }
 
 
