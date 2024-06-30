@@ -1,5 +1,5 @@
-#ifndef _TEST_LIB_ASSERTS_H_
-#define _TEST_LIB_ASSERTS_H_
+#ifndef TEST_LIB_ASSERTS_H
+#define TEST_LIB_ASSERTS_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -207,4 +207,4 @@ qsort(_arr2, (sz), sizeof(type), comparator)
 
 #endif // FAIL_FAST
 
-#endif // _TEST_LIB_ASSERTS_H_
+#endif // TEST_LIB_ASSERTS_H

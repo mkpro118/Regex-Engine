@@ -1,8 +1,12 @@
-#ifndef _REGEX_PORTABILITY_H_
-#define _REGEX_PORTABILITY_H_
+#ifndef REGEX_PORTABILITY_H
+#define REGEX_PORTABILITY_H
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+
+int n_processors_online();
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
    //define something for Windows (32-bit and 64-bit, this part is common)
@@ -19,12 +23,4 @@
 #error "Unknown compiler"
 #endif
 
-#endif // _REGEX_PORTABILITY_H_
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-
-
-int n_processors_online();
+#endif // REGEX_PORTABILITY_H

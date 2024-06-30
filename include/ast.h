@@ -1,3 +1,7 @@
+#ifndef REGEX_AST_H
+#define REGEX_AST_H
+
+
 /**
  * Lists the types of AST Nodes
  */
@@ -42,3 +46,5 @@ typedef struct ASTNode {
         struct ASTNode* child2;
     } extra;
 } ASTNode;
+
+#endif // REGEX_AST

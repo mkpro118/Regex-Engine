@@ -1,10 +1,10 @@
 // This file is an extension of the "testlib/asserts.h"
 // header, to include specific asserts for the regex types
 
-#ifndef _REGEX_ASSERTS_H_
-#define _REGEX_ASSERTS_H_
+#ifndef REGEX_ASSERTS_H
+#define REGEX_ASSERTS_H
 
-#ifdef _TOKEN_TESTS_
+#ifdef REGEX_TOKEN_TESTS
 
 #include "token.h"
 
@@ -30,10 +30,10 @@
     }\
 } while(0);
 
-#endif // _TOKEN_TESTS_
+#endif // REGEX_TOKEN_TESTS
 
 
-#ifdef _LEXER_TESTS_
+#ifdef REGEX_LEXER_TESTS
 
 #include "lexer.h"
 
@@ -52,8 +52,8 @@
     }\
 } while(0);
 
-#endif // _LEXER_TESTS_
+#endif // REGEX_LEXER_TESTS
 
-#endif // _REGEX_ASSERTS_H_
+#endif // REGEX_ASSERTS_H
 
 typedef int _make_compiler_happy;
