@@ -4,7 +4,6 @@
 #include "token.h"
 
 /**
- * TODO: WIP
  * Returns the next token with advancing the parser's position
  *
  * @param  parser The parser to peek with
@@ -12,7 +11,15 @@
  * @return A pointer to the next token if it exists, NULL otherwise
  */
 Token* peek(Parser* parser){
-    return parser != NULL ? NULL : NULL;
+    if (parser == NULL) {
+        return NULL;
+    }
+
+    if (parser->position >= parser->n_tokens) {
+        return NULL;
+    }
+
+    return &(parser->tokens[parser->position]);
 }
 
 
