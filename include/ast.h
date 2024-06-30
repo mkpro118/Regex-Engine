@@ -47,4 +47,34 @@ typedef struct ASTNode {
     } extra;
 } ASTNode;
 
+
+/**
+ * Allocate a new AST Node, and initialize it with the given type
+ * 
+ * @param  type The type of the AST Node
+ *
+ * @return A pointer to a heap allocated AST Node on success,
+ *         NULL on failure
+ */
+ASTNode* ast_node_create(ASTNodeType type);
+
+
+/**
+ * Initialize an AST Node
+ *
+ * @param  node A Pointer to the AST Node to initialize
+ * @param  type The type of the AST Node
+ *
+ * @return  0 on success, -1 on failure
+ */
+int ast_node_init(ASTNode* node, ASTNodeType type);
+
+
+/**
+ * Release memory allocated for the given AST Node
+ *
+ * @param node The AST Node to free
+ */
+void ast_node_free(ASTNode* node);
+
 #endif // REGEX_AST
