@@ -6,7 +6,8 @@
 #include "list.h"
 
 // Define a test list for integers
-CREATE_LIST_FOR(int, IntList)
+CREATE_LIST_TYPE_FOR(int, IntList)
+CREATE_LIST_IMPL_FOR(int, IntList)
 
 IntList list;
 
