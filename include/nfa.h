@@ -9,6 +9,8 @@ typedef struct NFA {
     NFAStateList* final_states;
 } NFA;
 
+CREATE_LIST_TYPE_FOR(NFAState*, NFAStateSet)
+
 /**
  * Create a heap allocated NFA
  * NFA = Non-deterministic Finite Automata
