@@ -1,8 +1,24 @@
 #ifndef REGEX_STATE_H
 #define REGEX_STATE_H
 
+#include <sys/types.h>
 #include <stdbool.h>
-#define MAX_N_TRANSITIONS 128
+
+// There are 95 printable characters, +1 for epsilon transition
+// Technically, we would only support 89 printable characters,
+// since 6 of them are used for regex control, which are
+// *, +, ?, |, (, )
+// However hashing strategy is easier if we reserve 96 spots
+// So, if we do the math, we waste
+// 6 * sizeof(NFAStateList) or,
+// 6 * sizeof(2 * sizeof(size_t) + sizeof(NFAState*)) bytes per NFAState
+// On my 64 bit machine, this is
+// 6 * (2 * 8 + 8) = 6 * 24 = 144 bytes.
+// It is what it is, a more complex hashing strategy will consume more time
+// Tradeoffs...
+#define MAX_N_TRANSITIONS 96
+
+typedef struct NFAStateList NFAStateList;
 
 /**
  * Represents a state in the NFA
@@ -14,7 +30,7 @@
  */
 typedef struct NFAState {
     bool is_final;
-    struct NFAState* transitions[MAX_N_TRANSITIONS];
+    NFAStateList* transitions[MAX_N_TRANSITIONS];
 } NFAState;
 
 
