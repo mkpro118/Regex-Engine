@@ -1,15 +1,8 @@
-#include "nfa_state.h"
 #include "list.h"
+#include "nfa_state.h"
 
-/**
- * Collection of transition states
- *
- * Members
- *    - capacity: Cacpacity of this collection, i.e, max elements it can hold
- *    - size: Size of this collection, i.e, number of elements it currently has
- *    - list: The underlying list of transition states
- */
-CREATE_LIST_FOR(NFAState, NFAStateList)
+// Implementation for NFAStateList
+CREATE_LIST_IMPL_FOR(NFAState, NFAStateList)
 
 // Create and initialize a heap allocated NFA State
 NFAState* state_create(bool is_final) {
@@ -28,10 +21,12 @@ NFAState* state_create(bool is_final) {
 
 // Initialize the given NFA State
 int state_init(NFAState* state, bool is_final) {
+    static unsigned long long int id_ctr = 0;
     if (state == NULL) {
         return -1;
     }
 
+    state->ID = id_ctr++;
     state->is_final = is_final;
 
     for (int i = 0; i < MAX_N_TRANSITIONS; i++) {
