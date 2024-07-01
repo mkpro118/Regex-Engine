@@ -615,7 +615,8 @@ int main() {
         "test_next",
         "test_expect",
         "test_parse_base",
-        "test_parse_factor"
+        "test_parse_factor",
+        "test_parse_term",
     };
     int argc = sizeof(argv) / sizeof(char*);
     return default_main(argv, argc);
