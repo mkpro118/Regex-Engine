@@ -24,19 +24,9 @@ int setup() {
 }
 
 int teardown() {
-    for (int i = 0; i < MAX_N_TRANSITIONS; i++) {
-        if (start_state.transitions[i] != NULL) {
-            NFAStateList_free(start_state.transitions[i], NULL);
-            free(start_state.transitions[i]);
-        }
-        if (intermediate_state.transitions[i] != NULL) {
-            NFAStateList_free(intermediate_state.transitions[i], NULL);
-            free(intermediate_state.transitions[i]);
-        }
-    }
-    NFAStateList_free(nfa->final_states, NULL);
-    free(nfa->final_states);
+    state_free(&start_state);
     nfa_free(nfa);
+    free(nfa);
     return 0;
 }
 
@@ -46,29 +36,44 @@ int test_nfa_create() {
     assert_equals_ptr(nfa->start_state, &start_state, NFAState*);
     assert_is_not_null(nfa->final_states);
     assert_equals_int(NFAStateList_size(nfa->final_states), 1);
-    assert_equals_ptr(nfa->final_states->list[0], &final_state, NFAState*);
+    assert_equals_int(nfa->final_states->list[0].ID, final_state.ID);
     TEST_END;
 }
 
 int test_nfa_match_positive() {
     TEST_BEGIN;
-    assert_equals_int(nfa_match(nfa, "ab"), true);
+    bool match = nfa_match(nfa, "ab");
+    assert_equals_int(match, true);
     TEST_END;
 }
 
 int test_nfa_match_negative() {
     TEST_BEGIN;
-    assert_equals_int(nfa_match(nfa, "a"), false);
-    assert_equals_int(nfa_match(nfa, "b"), false);
-    assert_equals_int(nfa_match(nfa, "abc"), false);
-    assert_equals_int(nfa_match(nfa, ""), false);
+
+    bool match = nfa_match(nfa, "a");
+    assert_equals_int(match, false);
+
+    match = nfa_match(nfa, "b");
+    assert_equals_int(match, false);
+
+    match = nfa_match(nfa, "abc");
+    assert_equals_int(match, false);
+
+    match = nfa_match(nfa, "");
+    assert_equals_int(match, false);
+
     TEST_END;
 }
 
 int test_nfa_match_edge_cases() {
     TEST_BEGIN;
-    assert_equals_int(nfa_match(NULL, "ab"), false);
-    assert_equals_int(nfa_match(nfa, NULL), false);
+
+    bool match = nfa_match(NULL, "ab");
+    assert_equals_int(match, false);
+
+    match = nfa_match(nfa, NULL);
+    assert_equals_int(match, false);
+
     TEST_END;
 }
 
