@@ -2,6 +2,16 @@
 
 #include "ast.h"
 
+
+char* ast_str[] = {
+    "CharNode",
+    "StarNode",
+    "PlusNode",
+    "QuestionNode",
+    "OrNode",
+    "ConcatNode",
+};
+
 // Allocate a new AST Node, and initialize it with the given type
 ASTNode* ast_node_create(ASTNodeType type) {
     ASTNode* node = malloc(sizeof(ASTNode));
@@ -50,4 +60,8 @@ void ast_node_free(ASTNode* node) {
     }
 
     free(node);
+}
+
+char* str_ast_node(ASTNode* node) {
+    return ast_str[node->type];
 }

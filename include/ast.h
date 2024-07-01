@@ -77,4 +77,10 @@ int ast_node_init(ASTNode* node, ASTNodeType type);
  */
 void ast_node_free(ASTNode* node);
 
+/**
+ * @param  node The node to convert to string
+ *
+ * @return A string description of the given AST Node
+ */
+char* str_ast_node(ASTNode* node);
 #endif // REGEX_AST
