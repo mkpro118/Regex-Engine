@@ -454,17 +454,21 @@ int test_parse(void) {
 
     /* This will result in an AST that looks like
      *
-     * Level 0:                 OR
-     *                          |
-     *                +---------+---------+
-     *                |                   |
-     * Level 1:      CONCAT               OR
-     *                |                   |
-     *           +----+----+        +-----+----+
-     *           |         |        |          |
-     * Level 2: CHAR(a)  QUESTION   STAR      PLUS
-     *                     |        |          |
-     * Level 3:          CHAR(b)   CHAR(c)   CHAR(d)
+     * Level 0:                          OR
+     *                                   |
+     *                          +--------+--------+
+     *                          |                 |
+     * Level 1:                 OR              PLUS
+     *                          |                 |
+     *                   +------+-------+         |
+     *                   |              |         |
+     * Level 2:         CONCAT        STAR     CHAR(d)
+     *                   |              |
+     *              +----+----+         |
+     *              |         |         |
+     * Level 3:  CHAR(a)  QUESTION   CHAR(c)
+     *                        |
+     * Level 4:            CHAR(b)
      */
 
     // Manually create the AST
@@ -490,13 +494,13 @@ int test_parse(void) {
     ops[3].child1 = &chars[0];      // Character('a') node
     ops[3].extra.child2 = &ops[0];  // Question("b?") node
 
-    // Setup the second or rightmost OR Node (for "c*|d+")
-    ops[4].child1 = &ops[1];        // Star("c*") node
-    ops[4].extra.child2 = &ops[2];  // Plus("d+") node
+    // Setup the first or leftmost OR Node (for "(ab?)|c*")
+    ops[4].child1 = &ops[3];        // Concat("ab?") node
+    ops[4].extra.child2 = &ops[1];  // Star("c*") node
 
-    // Setup the first or leftmost OR Node
-    ops[5].child1 = &ops[3];        // Concat("ab?") node
-    ops[5].extra.child2 = &ops[4];  // Or("c*|d+") node
+    // Setup the second or rightmost OR Node
+    ops[5].child1 = &ops[4];        // Or("(ab?)|c*") node
+    ops[5].extra.child2 = &ops[2];  // Plus("d+") node
 
     // Start test
     CREATE_PARSER;
@@ -513,43 +517,43 @@ int test_parse(void) {
     assert_is_not_null(root->child1);
     assert_is_not_null(root->extra.child2);
 
-    // Level 1: Check root node's left child, i.e Concat node
-    ASTNode* concat = root->child1;
+    // Level 1: Check root node's left child, i.e OR node
+    ASTNode* or = root->child1;
+    assert_equals_int(or->type, ops[4].type);
+
+    // OR's children should not be null
+    assert_is_not_null(or->child1);
+    assert_is_not_null(or->extra.child2);
+
+    // Level 2: Check OR's left child, i.e. Concat node
+    ASTNode* concat = or->child1;
     assert_equals_int(concat->type, ops[3].type);
 
     // Concat's children should not be null
     assert_is_not_null(concat->child1);
     assert_is_not_null(concat->extra.child2);
 
-    // Level 2: Check concat's left child, i.e. Char(a) node
+    // Level 3: Check concat's left child, i.e. Char(a) node
     ASTNode* char_a = concat->child1;
     assert_equals_int(char_a->type, chars[0].type);
     assert_equals_int(char_a->extra.character, chars[0].extra.character);
 
-    // Level 2: Check concat's right child, i.e. Question node
+    // Level 3: Check concat's right child, i.e. Question node
     ASTNode* question = concat->extra.child2;
     assert_equals_int(question->type, ops[0].type);
 
     // Question's child should not be null
     assert_is_not_null(question->child1);
 
-    // Level 3: Check question's child, i.e Char(b) node
+    // Level 4: Check question's child, i.e Char(b) node
     ASTNode* char_b = question->child1;
     assert_equals_int(char_b->type, chars[1].type);
     assert_equals_int(char_b->extra.character, chars[1].extra.character);
 
-    // (Go back up the tree to Level 0 ...)
+    // (Go back up the tree to Level 1 ...)
 
-    // Level 1: Check the root node's right child, i.e. Or("c*|d+") node
-    ASTNode* or = root->extra.child2;
-    assert_equals_int(or->type, ops[4].type);
-
-    // Or's children should not be null
-    assert_is_not_null(or->child1);
-    assert_is_not_null(or->extra.child2);
-
-    // Level 2: Check Or's left child, i.e. Star("c*") node
-    ASTNode* star = or->child1;
+    // Level 2: Check OR's right child, i.e. Star("c*") node
+    ASTNode* star = or->extra.child2;
     assert_equals_int(star->type, ops[1].type);
 
     // Star's child should not be null
@@ -560,16 +564,16 @@ int test_parse(void) {
     assert_equals_int(char_c->type, chars[2].type);
     assert_equals_int(char_c->extra.character, chars[2].extra.character);
 
-    // (Go back up the tree to Level 1 ...)
+    // (Go back up the tree to Level 0 ...)
 
-    // Level 2: Check Or's right child, i.e. Plus("d+") node
-    ASTNode* plus = or->extra.child2;
+    // Level 1: Check the root node's right child, i.e. Plus("d+") node
+    ASTNode* plus = root->extra.child2;
     assert_equals_int(plus->type, ops[2].type);
 
     // Plus's child should not be null
     assert_is_not_null(plus->child1);
 
-    // Level 3: Check Plus's child, i.e. Char(d) node
+    // Level 2: Check Plus's child, i.e. Char(d) node
     ASTNode* char_d = plus->child1;
     assert_equals_int(char_d->type, chars[3].type);
     assert_equals_int(char_d->extra.character, chars[3].extra.character);
