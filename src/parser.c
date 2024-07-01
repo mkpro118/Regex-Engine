@@ -116,21 +116,49 @@ ASTNode* parse_base(Parser* parser){
 
 
 /**
- * TODO: WIP
  * Parse the `factor` non-terminal.
  *
  * See the regex CFG on
  * https://github.com/mkpro118/Regex-Engine/issues/6#issue-2337160940
  *
  * The relevant production is reproduced below
- *     non terminal  ::  factor ->   base op  |   factor op
+ *     non terminal  ::  factor ->   base op | epsilon
  *
  * @param  parser The parser to operate on
  *
  * @return The root of the AST created by parsing the `factor` non-terminal
  */
 ASTNode* parse_factor(Parser* parser){
-    return parser != NULL ? NULL : NULL;
+    ASTNode* node = parse_base(parser);
+
+    Token* token;
+
+    while ((token = peek(parser))) {
+        ASTNode* parent = NULL;
+
+        switch (token->type) {
+        case STAR:
+            parent = ast_node_create(STAR_NODE);
+            break;
+
+        case PLUS:
+            parent = ast_node_create(PLUS_NODE);
+            break;
+
+        case QUESTION:
+            parent = ast_node_create(QUESTION_NODE);
+            break;
+
+        default:
+            return node;
+        }
+
+        parent->child1 = node;
+        node = parent;
+        next(parser);
+    }
+
+    return node;
 }
 
 
