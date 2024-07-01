@@ -151,12 +151,12 @@ int test_expect(void) {
 
     int ret = expect(&parser, expected);
     assert_equals_int(ret, 0);
-    assert_equals_int(parser.position, 0);
+    assert_equals_int(parser.position, 1);
 
     // Something that was not expected
-    ret = expect(&parser, CHAR);
+    ret = expect(&parser, OR);
     assert_equals_int(ret, -1);
-    assert_equals_int(parser.position, 0);
+    assert_equals_int(parser.position, 2);
 
     // Bad input
     ret = expect(NULL, CHAR);
@@ -412,7 +412,7 @@ int test_parse_expr(void) {
 
         ASTNode* node = parse_expr(&parser);
         assert_is_not_null(node);
-        assert_equals_int(parser.position, 3);
+        assert_equals_int(parser.position, 4);
 
         assert_equals_int(node->type, OR_NODE);
 
@@ -608,6 +608,7 @@ int main() {
         "test_parse_base",
         "test_parse_factor",
         "test_parse_term",
+        "test_parse_expr",
     };
     int argc = sizeof(argv) / sizeof(char*);
     return default_main(argv, argc);
