@@ -66,7 +66,12 @@ int expect(Parser* parser, TokenType type){
         return -1;
     }
 
-    return parser->tokens[parser->position].type == type ? 0 : -1;
+    Token* token = next(parser);
+    if (token == NULL) {
+        return type == EOF_ ? 0 : -1;
+    }
+
+    return token->type == type ? 0 : -1;
 }
 
 
@@ -217,7 +222,6 @@ ASTNode* parse_term(Parser* parser){
 
 
 /**
- * TODO: WIP
  * Parse the `expr` non-terminal.
  *
  * See the regex CFG on
@@ -231,7 +235,38 @@ ASTNode* parse_term(Parser* parser){
  * @return The root of the AST created by parsing the `expr` non-terminal
  */
 ASTNode* parse_expr(Parser* parser){
-    return parser != NULL ? NULL : NULL;
+    if (parser == NULL) {
+        return NULL;
+    }
+
+    ASTNode* left = parse_term(parser);
+
+    Token* token;
+
+    while ((token = peek(parser)) && token->type == OR) {
+        // This is to consume the OR token
+        next(parser);
+
+        ASTNode* right = parse_term(parser);
+        if (right == NULL) {
+            ast_node_free(left);
+            return NULL;
+        }
+
+        ASTNode* or = ast_node_create(OR_NODE);
+        if (or == NULL) {
+            ast_node_free(left);
+            ast_node_free(right);
+            return NULL;
+        }
+
+        or->child1 = left;
+        or->extra.child2 = right;
+
+        left = or;
+    }
+
+    return left;
 }
 
 // Create a heap allocated parser from the given Lexer
