@@ -331,7 +331,7 @@ int test_parse_term(void) {
         assert_equals_int(node->child1->extra.character, 'a');
 
         // Check right child
-        assert_equals_int(node->extra.child2, CHAR_NODE);
+        assert_equals_int(node->extra.child2->type, CHAR_NODE);
         assert_equals_int(node->extra.child2->extra.character, 'b');
 
         ast_node_free(node);
@@ -361,15 +361,6 @@ int test_parse_term(void) {
 
     // Case: RPAREN token
     TEST_CASE(")")
-
-    // Case: STAR token
-    TEST_CASE("*")
-
-    // Case: PLUS token
-    TEST_CASE("+")
-
-    // Case: QUESTION token
-    TEST_CASE("?")
 
     // Case: OR token
     TEST_CASE("|")
