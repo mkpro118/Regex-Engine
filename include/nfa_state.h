@@ -76,4 +76,15 @@ void state_free(NFAState* state);
  */
 int add_transition(NFAState* from, NFAState* to, char on);
 
+/**
+ * Get the transition for the `on` character for the given NFA State
+ *
+ * @param  from State to transition from
+ * @param  on   The character on which to transition
+ *
+ * @return A pointer to the list of transition state if it exists,
+ *         NULL if it doesn't
+ */
+NFAStateList* get_transition(NFAState* from, char on);
+
 #endif // REGEX_STATE_H
