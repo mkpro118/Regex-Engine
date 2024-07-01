@@ -3,8 +3,6 @@
 #include "nfa_state.h"
 #include "list.h"
 
-#include <stdio.h>
-
 CREATE_LIST_FOR(NFAState, NFAStateList)
 
 // Global NFAState variable
