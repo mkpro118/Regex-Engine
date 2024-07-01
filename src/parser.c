@@ -129,6 +129,10 @@ ASTNode* parse_base(Parser* parser){
  * @return The root of the AST created by parsing the `factor` non-terminal
  */
 ASTNode* parse_factor(Parser* parser){
+    if (parser == NULL) {
+        return NULL;
+    }
+
     ASTNode* node = parse_base(parser);
 
     Token* token;
@@ -163,7 +167,6 @@ ASTNode* parse_factor(Parser* parser){
 
 
 /**
- * TODO: WIP
  * Parse the `term` non-terminal.
  *
  * See the regex CFG on
@@ -177,7 +180,39 @@ ASTNode* parse_factor(Parser* parser){
  * @return The root of the AST created by parsing the `term` non-terminal
  */
 ASTNode* parse_term(Parser* parser){
-    return parser != NULL ? NULL : NULL;
+    if (parser == NULL) {
+        return NULL;
+    }
+
+    ASTNode* left = parse_factor(parser);
+
+    Token* token;
+
+    while ((token = peek(parser))) {
+        if (token->type == OR || token->type == RPAREN) {
+            return left;
+        }
+
+        ASTNode* right = parse_factor(parser);
+        if (right == NULL) {
+            ast_node_free(left);
+            return NULL;
+        }
+
+        ASTNode* concat = ast_node_create(CONCAT_NODE);
+        if (concat == NULL) {
+            ast_node_free(left);
+            ast_node_free(right);
+            return NULL;
+        }
+
+        concat->child1 = left;
+        concat->extra.child2 = right;
+
+        left = concat;
+    }
+
+    return left;
 }
 
 
