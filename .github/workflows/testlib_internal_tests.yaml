@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "tests/testlib/*"
+    types: [ready_for_review]
 
 jobs:
   testlib_internal_build_asan:
