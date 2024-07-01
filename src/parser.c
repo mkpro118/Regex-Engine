@@ -9,7 +9,6 @@ ASTNode* parse_factor(Parser* parser);
 ASTNode* parse_term(Parser* parser);
 ASTNode* parse_expr(Parser* parser);
 
-
 /**
  * Returns the next token with advancing the parser's position
  *
@@ -88,7 +87,7 @@ int expect(Parser* parser, TokenType type){
  *
  * @return The root of the AST created by parsing the `base` non-terminal
  */
-ASTNode* parse_base(Parser* parser){
+ASTNode* parse_base(Parser* parser) {
     if (parser == NULL) {
         return NULL;
     }
@@ -102,7 +101,12 @@ ASTNode* parse_base(Parser* parser){
         node->extra.character = token->value;
         break;
 
-    case LPAREN:
+    case LPAREN:;
+        Token* next = peek(parser);
+        if (next != NULL && next->type == RPAREN) {
+            return NULL;
+        }
+
         node = parse_expr(parser);
 
         if (expect(parser, RPAREN) < 0) {
@@ -116,6 +120,7 @@ ASTNode* parse_base(Parser* parser){
         // Error
         return NULL;
     }
+
     return node;
 }
 
@@ -133,7 +138,7 @@ ASTNode* parse_base(Parser* parser){
  *
  * @return The root of the AST created by parsing the `factor` non-terminal
  */
-ASTNode* parse_factor(Parser* parser){
+ASTNode* parse_factor(Parser* parser) {
     if (parser == NULL) {
         return NULL;
     }
@@ -184,7 +189,7 @@ ASTNode* parse_factor(Parser* parser){
  *
  * @return The root of the AST created by parsing the `term` non-terminal
  */
-ASTNode* parse_term(Parser* parser){
+ASTNode* parse_term(Parser* parser) {
     if (parser == NULL) {
         return NULL;
     }
@@ -210,6 +215,7 @@ ASTNode* parse_term(Parser* parser){
             ast_node_free(right);
             return NULL;
         }
+
 
         concat->child1 = left;
         concat->extra.child2 = right;
@@ -239,6 +245,7 @@ ASTNode* parse_expr(Parser* parser){
         return NULL;
     }
 
+
     ASTNode* left = parse_term(parser);
 
     Token* token;
@@ -259,6 +266,7 @@ ASTNode* parse_expr(Parser* parser){
             ast_node_free(right);
             return NULL;
         }
+
 
         or->child1 = left;
         or->extra.child2 = right;
@@ -307,5 +315,5 @@ void parser_free(Parser* parser) {
 
 // Create a AST by parsing the tokens in the given parser
 ASTNode* parse(Parser* parser) {
-    return parser != NULL ? NULL : NULL;
+    return parse_expr(parser);
 }
