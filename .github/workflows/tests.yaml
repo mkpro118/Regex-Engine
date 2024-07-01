@@ -6,6 +6,7 @@ on:
       - "include/*"
       - "src/*"
       - "tests/*"
+    types: [ready_for_review]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
