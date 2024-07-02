@@ -3,7 +3,7 @@
 #include "list.h"
 #include "nfa_state.h"
 
-CREATE_LIST_IMPL_FOR(NFAState, NFAStateList)
+CREATE_LIST_IMPL_FOR(NFAState*, NFAStateList)
 
 // Global NFAState variable
 NFAState state;
