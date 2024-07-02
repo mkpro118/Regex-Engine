@@ -44,7 +44,7 @@ typedef struct NFAState {
  *    - size: Size of this collection, i.e, number of elements it currently has
  *    - list: The underlying list of transition states
  */
-CREATE_LIST_TYPE_FOR(NFAState, NFAStateList)
+CREATE_LIST_TYPE_FOR(NFAState*, NFAStateList)
 
 /**
  * Create and initialize a heap allocated NFA State
@@ -74,6 +74,14 @@ int state_init(NFAState* state, bool is_final);
  * @param state The state to deallocate
  */
 void state_free(NFAState* state);
+
+
+/**
+ * Release the memory used by NFA State that the argument points to.
+ *
+ * @param state A pointer to the NFA state to deallocate
+ */
+void state_ptr_free(NFAState** state);
 
 
 /**
