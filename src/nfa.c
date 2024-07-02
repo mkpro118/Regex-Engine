@@ -24,8 +24,12 @@ void nfa_free(NFA* nfa) {
     }
 
     if (nfa->final_states != NULL) {
-        NFAStateList_free(nfa->final_states, state_free);
+        NFAStateList_free(nfa->final_states, state_ptr_free);
     }
+}
+
+int state_ptr_cmp(const NFAState** a, const NFAState** b) {
+    return ((*a)->ID - (*b)->ID);
 }
 
 bool nfa_match(NFA* nfa, const char* string) {
@@ -36,22 +40,33 @@ bool nfa_match(NFA* nfa, const char* string) {
     NFAStateSet* current_states = NFAStateSet_create(1);
     NFAStateSet_add(current_states, &nfa->start_state);
 
-    for (size_t i = 0; i < strlen(string); i++) {
+    size_t len_str = strlen(string);
+    for (size_t i = 0; i < len_str; i++) {
         char c = string[i];
+
         NFAStateSet* next_states = NFAStateSet_create(1);
 
         for (size_t j = 0; j < current_states->size; j++) {
             NFAState* state = current_states->list[j];
+
             NFAStateList* list = get_transition(state, c);
-            if (list != NULL) {
+
+            if (list != NULL) { // Has transition for c
+
                 for (size_t k = 0; k < list->size; k++) {
-                    NFAState* next_state = &list->list[k];
-                    NFAStateSet_add(next_states, &next_state);
+                    NFAState* next_state = list->list[k];
+                    const NFAState** state_ptr = (const NFAState**) &next_state;
+                    NFAState** existing =
+                        NFAStateSet_find(next_states, state_ptr, state_ptr_cmp);
+
+                    if (existing == NULL) {
+                        NFAStateSet_add(next_states, &next_state);
+                    }
                 }
             }
         }
 
-        NFAStateSet_free(current_states, NULL);
+        NFAStateSet_free(current_states, NULL); // no internal free is needed
         free(current_states);
         current_states = next_states;
     }
