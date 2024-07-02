@@ -1,9 +1,9 @@
 #include "testlib/asserts.h"
 #include "testlib/tests.h"
-#include "nfa_state.h"
 #include "list.h"
+#include "nfa_state.h"
 
-CREATE_LIST_FOR(NFAState, NFAStateList)
+CREATE_LIST_IMPL_FOR(NFAState*, NFAStateList)
 
 // Global NFAState variable
 NFAState state;
@@ -13,10 +13,11 @@ int test_state_init() {
 
     TEST_BEGIN;
 
-    assert_equals_int(state_init(&state, false), 0);
+    int ret = state_init(&state, false);
+    assert_equals_int(ret, 0);
     assert_equals_int(state.is_final, false);
-    for (int i = 0; i < MAX_N_TRANSITIONS; i++) {
 
+    for (int i = 0; i < MAX_N_TRANSITIONS; i++) {
         assert_is_null(state.transitions[i]);
     }
 

@@ -4,6 +4,8 @@
 #include <sys/types.h>
 #include <stdbool.h>
 
+#include "list.h"
+
 // There are 95 printable characters, +1 for epsilon transition
 // Technically, we would only support 89 printable characters,
 // since 6 of them are used for regex control, which are
@@ -29,10 +31,20 @@ typedef struct NFAStateList NFAStateList;
  *    - transitions: A link to the next state on a given character
  */
 typedef struct NFAState {
+    unsigned long long int ID;
     bool is_final;
     NFAStateList* transitions[MAX_N_TRANSITIONS];
 } NFAState;
 
+/**
+ * Collection of transition states
+ *
+ * Members
+ *    - capacity: Cacpacity of this collection, i.e, max elements it can hold
+ *    - size: Size of this collection, i.e, number of elements it currently has
+ *    - list: The underlying list of transition states
+ */
+CREATE_LIST_TYPE_FOR(NFAState*, NFAStateList)
 
 /**
  * Create and initialize a heap allocated NFA State
@@ -62,6 +74,14 @@ int state_init(NFAState* state, bool is_final);
  * @param state The state to deallocate
  */
 void state_free(NFAState* state);
+
+
+/**
+ * Release the memory used by NFA State that the argument points to.
+ *
+ * @param state A pointer to the NFA state to deallocate
+ */
+void state_ptr_free(NFAState** state);
 
 
 /**

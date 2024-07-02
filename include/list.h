@@ -5,14 +5,22 @@
 #include <sys/types.h>
 #include <string.h>
 
-#define CREATE_LIST_FOR(type, list_name) typedef struct list_name {\
+#define CREATE_LIST_TYPE_FOR(type, list_name) typedef struct list_name {\
     size_t capacity;\
     size_t size;\
     type* list;\
 } list_name;\
 typedef void (*list_name##_free_cb)(type*);\
 typedef int (*list_name##_compare_cb)(const type*, const type*);\
-\
+int list_name##_init(list_name* list, size_t capacity);\
+list_name* list_name##_create(size_t capacity);\
+int list_name##_add(list_name* list, type* value);\
+void list_name##_free(list_name* list, list_name##_free_cb cb);\
+type* list_name##_find(list_name* list, const type* value, list_name##_compare_cb compare);\
+int list_name##_remove(list_name* list, const type* value, list_name##_compare_cb compare);\
+size_t list_name##_size(const list_name* list);
+
+#define CREATE_LIST_IMPL_FOR(type, list_name)\
 int list_name##_init(list_name* list, size_t capacity) {\
     if (list == NULL || capacity == 0) {\
         return -1;\
@@ -93,7 +101,7 @@ type* list_name##_find(list_name* list, const type* value, list_name##_compare_c
     }\
 \
     for (size_t i = 0; i < list->size; i++) {\
-        if (compare(&list->list[i], value) == 0) {\
+        if (compare((const type*) &list->list[i], value) == 0) {\
             return &list->list[i];\
         }\
     }\
@@ -107,7 +115,7 @@ int list_name##_remove(list_name* list, const type* value, list_name##_compare_c
     }\
 \
     for (size_t i = 0; i < list->size; i++) {\
-        if (compare(&list->list[i], value) == 0) {\
+        if (compare((const type*) &list->list[i], value) == 0) {\
             memmove(&list->list[i], &list->list[i + 1], (list->size - i - 1) * sizeof(type));\
             list->size--;\
             return 0;\

@@ -6,7 +6,8 @@
 #include "list.h"
 
 // Define a test list for integers
-CREATE_LIST_FOR(int, IntList)
+CREATE_LIST_TYPE_FOR(int, IntList)
+CREATE_LIST_IMPL_FOR(int, IntList)
 
 IntList list;
 
@@ -201,7 +202,7 @@ Test tests[] = {
     {.name="test_remove_from_list", .func=test_remove_from_list},
     {.name="test_list_size", .func=test_list_size},
     {.name="test_edge_cases", .func=test_edge_cases},
-    {NULL, NULL}  // Sentinel to mark the end of the array
+    {.name=NULL}
 };
 
 // Main function

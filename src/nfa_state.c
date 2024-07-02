@@ -1,15 +1,8 @@
-#include "nfa_state.h"
 #include "list.h"
+#include "nfa_state.h"
 
-/**
- * Collection of transition states
- *
- * Members
- *    - capacity: Cacpacity of this collection, i.e, max elements it can hold
- *    - size: Size of this collection, i.e, number of elements it currently has
- *    - list: The underlying list of transition states
- */
-CREATE_LIST_FOR(NFAState, NFAStateList)
+// Implementation for NFAStateList
+CREATE_LIST_IMPL_FOR(NFAState*, NFAStateList)
 
 // Create and initialize a heap allocated NFA State
 NFAState* state_create(bool is_final) {
@@ -28,10 +21,12 @@ NFAState* state_create(bool is_final) {
 
 // Initialize the given NFA State
 int state_init(NFAState* state, bool is_final) {
+    static unsigned long long int id_ctr = 0;
     if (state == NULL) {
         return -1;
     }
 
+    state->ID = id_ctr++;
     state->is_final = is_final;
 
     for (int i = 0; i < MAX_N_TRANSITIONS; i++) {
@@ -39,6 +34,10 @@ int state_init(NFAState* state, bool is_final) {
     }
 
     return 0;
+}
+
+void state_ptr_free(NFAState** state) {
+    state_free(*state);
 }
 
 // Release the memory used by this NFA State.
@@ -49,7 +48,7 @@ void state_free(NFAState* state) {
 
     for (int i = 0; i < MAX_N_TRANSITIONS; i++) {
         if (state->transitions[i] != NULL) {
-            NFAStateList_free(state->transitions[i], state_free);
+            NFAStateList_free(state->transitions[i], state_ptr_free);
             free(state->transitions[i]);
         }
         state->transitions[i] = NULL;
@@ -81,7 +80,7 @@ int add_transition(NFAState* from, NFAState* to, char on) {
     }
 
     // Add the transition
-    int size = NFAStateList_add(from->transitions[index], to);
+    int size = NFAStateList_add(from->transitions[index], &to);
     return size;
 }
 
