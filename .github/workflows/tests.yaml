@@ -1,6 +1,7 @@
 name: Regex Tests
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - "include/*"
@@ -104,4 +105,4 @@ jobs:
         run: chmod +x ${{ github.workspace }}/out/valgrind/*.test
 
       - name: Run tests
-        run: make test_testlib_valgrind
+        run: make test_valgrind
