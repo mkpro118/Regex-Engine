@@ -17,7 +17,8 @@ int setup() {
     add_transition(&intermediate_state, &final_state, 'b');
 
     NFAStateList* final_states = NFAStateList_create(1);
-    NFAStateList_add(final_states, &final_state);
+    NFAState* fptr = &final_state;
+    NFAStateList_add(final_states, &fptr);
 
     nfa = nfa_create(&start_state, final_states);
     return 0;
@@ -26,6 +27,7 @@ int setup() {
 int teardown() {
     state_free(&start_state);
     nfa_free(nfa);
+    free(nfa->final_states);
     free(nfa);
     return 0;
 }
@@ -36,14 +38,16 @@ int test_nfa_create() {
     assert_equals_ptr(nfa->start_state, &start_state, NFAState*);
     assert_is_not_null(nfa->final_states);
     assert_equals_int(NFAStateList_size(nfa->final_states), 1);
-    assert_equals_int(nfa->final_states->list[0].ID, final_state.ID);
+    assert_equals_int(nfa->final_states->list[0]->ID, final_state.ID);
     TEST_END;
 }
 
 int test_nfa_match_positive() {
     TEST_BEGIN;
+
     bool match = nfa_match(nfa, "ab");
     assert_equals_int(match, true);
+
     TEST_END;
 }
 
