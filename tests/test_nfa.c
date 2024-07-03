@@ -12,6 +12,9 @@ int setup() {
     state_init(&start_state, false);
     state_init(&final_state, true);
     state_init(&intermediate_state, false);
+    start_state.should_free = false;
+    final_state.should_free = false;
+    intermediate_state.should_free = false;
 
     add_transition(&start_state, &intermediate_state, 'a');
     add_transition(&intermediate_state, &final_state, 'b');
@@ -27,7 +30,6 @@ int setup() {
 int teardown() {
     state_free(&start_state);
     nfa_free(nfa);
-    free(nfa->final_states);
     free(nfa);
     return 0;
 }
