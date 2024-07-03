@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "ast.h"
 #include "nfa.h"
 #include "nfa_state.h"
@@ -38,6 +39,7 @@ static const char EPSILON = '\0';
 
 static inline
 void* free_resources(State start, State final, StateList list) {
+    printf("FREEING RESOURCES\n");
     if (start != NULL) {
         state_free(start);
     }
@@ -47,8 +49,11 @@ void* free_resources(State start, State final, StateList list) {
     }
 
     if (list != NULL) {
+        printf("list is not null, freeing\n");
         NFAStateList_free(list, NULL);
         free(list);
+    } else {
+        printf("list is null, NOT freeing\n");
     }
     return NULL;
 }
@@ -291,7 +296,51 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
         NFA_PARTIAL_FREE(right_nfa);
         break;
 
+////////////////////////////////////////////////////////////////////////////////
+/*
+    This is a special case where we actually will not use the start and final
+    states initialized above. We will simply use the left child's start state
+    and the right child's final states to create our combined NFA
+
+    1. Add epsilon transition from parent's start to the
+       left child's start state.
+    2. Add epsilon transitions from left child's final states to the
+       right child's start state.
+*/
+////////////////////////////////////////////////////////////////////////////////
+
     case CONCAT_NODE:
+        // Release initialized resource as we do not need them
+        free_resources(start, final, final_states);
+
+        left_nfa = convert_ast_to_nfa(root->child1);
+        if (left_nfa == NULL) {
+            return NULL;
+        }
+
+        right_nfa = convert_ast_to_nfa(root->extra.child2);
+        if (right_nfa == NULL) {
+            FREE_NFA(left_nfa);
+            return NULL;
+        }
+
+        // As a "hack", we can actually reuse this function to accomplish
+        // transitions from left nfa's final states to the right nfa's start
+        // No self links though.
+        if (epsilon_from_child_final_states(left_nfa, right_nfa->start_state, false) < 0) {
+            FREE_NFAS(left_nfa, right_nfa);
+            return NULL;
+        }
+
+        nfa = nfa_create(left_nfa->start_state, right_nfa->final_states);
+
+        // Freeing here is a little tricky.
+        // We can free the left nfa's as normal
+        NFA_PARTIAL_FREE(left_nfa)
+
+        // However we actually need the internals of the right_nfa
+        // But, we can free the structure itself.
+        free(right_nfa);
         break;
 
     default:
