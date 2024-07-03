@@ -92,8 +92,7 @@ int add_transition(NFAState* from, NFAState* to, char on) {
     }
 
     // Add the transition
-    int size = NFAStateList_add(from->transitions[index], &to);
-    return size;
+    return NFAStateList_add(from->transitions[index], &to);
 }
 
 // Get the transition for the `on` character for the given NFA State
