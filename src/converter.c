@@ -3,11 +3,9 @@
 #include "nfa_state.h"
 #include "converter.h"
 
-#define FREE_NFA(cnfa) do {\
-/* Release child NFA memory */\
-NFAStateList_free((cnfa)->final_states, NULL);\
-free((cnfa)->final_states);\
-free((cnfa));\
+#define FREE_NFA(nfa) do {\
+/* This is the Release NFA memory on error */\
+nfa_free(nfa);\
 } while(0);
 
 // 3/6 nodes have repeated code to create a nfa and release child resources.
@@ -19,7 +17,9 @@ if (NFAStateList_add(final_states, &final) < 0) {\
 }\
 nfa = nfa_create(start, final_states);\
 \
-FREE_NFA(child_nfa);\
+NFAStateList_free((child_nfa)->final_states, NULL);\
+free((child_nfa)->final_states);\
+free((child_nfa));\
 } while(0)
 
 typedef NFAState* State;
