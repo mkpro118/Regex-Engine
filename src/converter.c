@@ -8,18 +8,27 @@
 nfa_free(nfa);\
 } while(0);
 
-// 3/6 nodes have repeated code to create a nfa and release child resources.
-// Fill it in with a macro to keep code dry
-#define NFA_CREATE_SINGLE_CHILD do {\
+#define FREE_NFAS(nfa1, nfa2) FREE_NFA((nfa1)); FREE_NFA((nfa2));
+
+#define NFA_CREATE do {\
 /* Create list of final states,only one state here */\
 if (NFAStateList_add(final_states, &final) < 0) {\
     return free_resources(start, final, final_states);\
 }\
 nfa = nfa_create(start, final_states);\
-\
-NFAStateList_free((child_nfa)->final_states, NULL);\
-free((child_nfa)->final_states);\
-free((child_nfa));\
+} while(0)
+
+#define NFA_PARTIAL_FREE(nfa) do {\
+NFAStateList_free((nfa)->final_states, NULL);\
+free((nfa)->final_states);\
+free((nfa));\
+} while(0);
+
+// 3/6 nodes have repeated code to create a nfa and release child resources.
+// Fill it in with a macro to keep code dry
+#define NFA_CREATE_SINGLE_CHILD do {\
+NFA_CREATE;\
+NFA_PARTIAL_FREE(child_nfa);\
 } while(0)
 
 typedef NFAState* State;
@@ -99,6 +108,8 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
 
     NFA* nfa = NULL;
     NFA* child_nfa = NULL;
+    NFA* left_nfa = NULL;
+    NFA* right_nfa = NULL;
 
     switch (root->type) {
 ////////////////////////////////////////////////////////////////////////////////
@@ -224,7 +235,60 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
         NFA_CREATE_SINGLE_CHILD;
         break;
 
+////////////////////////////////////////////////////////////////////////////////
+/*
+    The next two nodes have two children. These children ASTs are still
+    independent, so we can still create NFA for them independently.
+
+    The strategy for the OR node is to
+    1. Add epsilon transitions from parent NFA's start state to
+       the start state for both the left and right child NFAs.
+    2. Add epsilon transitions to the final state from all
+       of the final states of both the left and right child NFAs.
+*/
+////////////////////////////////////////////////////////////////////////////////
+
     case OR_NODE:
+        left_nfa = convert_ast_to_nfa(root->child1);
+        if (left_nfa == NULL) {
+            return free_resources(start, final, final_states);
+        }
+
+        right_nfa = convert_ast_to_nfa(root->extra.child2);
+        if (right_nfa == NULL) {
+            FREE_NFA(left_nfa);
+            return free_resources(start, final, final_states);
+        }
+
+        // Add epsilon transition from parent's start to left child's start
+        if (add_transition(start, left_nfa->start_state, EPSILON) < 0) {
+            FREE_NFAS(left_nfa, right_nfa);
+            return free_resources(start, final, final_states);
+        }
+
+        // Add epsilon transition from parent's start to right child's start
+        if (add_transition(start, right_nfa->start_state, EPSILON) < 0) {
+            FREE_NFAS(left_nfa, right_nfa);
+            return free_resources(start, final, final_states);
+        }
+
+        // Add epsilon transition from left child's final states to
+        // parent's final. Do not link from final to start in the child
+        if (epsilon_from_child_final_states(left_nfa, final, false) < 0) {
+            FREE_NFAS(left_nfa, right_nfa);
+            return free_resources(start, final, final_states);
+        }
+
+        // Add epsilon transition from right child's final states to
+        // parent's final. Do not link from final to start in the child
+        if (epsilon_from_child_final_states(right_nfa, final, false) < 0) {
+            FREE_NFAS(left_nfa, right_nfa);
+            return free_resources(start, final, final_states);
+        }
+
+        NFA_CREATE;
+        NFA_PARTIAL_FREE(left_nfa);
+        NFA_PARTIAL_FREE(right_nfa);
         break;
 
     case CONCAT_NODE:
