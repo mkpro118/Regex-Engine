@@ -3,6 +3,13 @@
 #include "nfa_state.h"
 #include "converter.h"
 
+#define FREE_NFA(cnfa) do {\
+/* Release child NFA memory */\
+NFAStateList_free((cnfa)->final_states, NULL);\
+free((cnfa)->final_states);\
+free((cnfa));\
+} while(0);
+
 // 3/6 nodes have repeated code to create a nfa and release child resources.
 // Fill it in with a macro to keep code dry
 #define NFA_CREATE_SINGLE_CHILD do {\
@@ -12,10 +19,7 @@ if (NFAStateList_add(final_states, &final) < 0) {\
 }\
 nfa = nfa_create(start, final_states);\
 \
-/* Release child NFA memory */\
-NFAStateList_free(child_nfa->final_states, NULL);\
-free(child_nfa->final_states);\
-free(child_nfa);\
+FREE_NFA(child_nfa);\
 } while(0)
 
 typedef NFAState* State;
@@ -148,16 +152,19 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
 
         // Add link to parent NFA's start state. Zero repetition case
         if (add_transition(start, final, EPSILON) < 0) {
+            FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
 
         // Add link to child NFA's start state
         if (add_transition(start, child_nfa->start_state, EPSILON) < 0) {
+            FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
 
         // Add epsilon transitions from child's final states to our final state
         if (epsilon_from_child_final_states(child_nfa, final, true) < 0) {
+            FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
 
@@ -175,11 +182,13 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
 
         // Add link to child NFA's start state
         if (add_transition(start, child_nfa->start_state, EPSILON) < 0) {
+            FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
 
         // Add epsilon transitions from child's final states to our final state
         if (epsilon_from_child_final_states(child_nfa, final, true) < 0) {
+            FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
 
@@ -194,11 +203,13 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
 
         // Add link to parent NFA's start state. Zero repetition case
         if (add_transition(start, final, EPSILON) < 0) {
+            FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
 
         // Add link to child NFA's start state
         if (add_transition(start, child_nfa->start_state, EPSILON) < 0) {
+            FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
 
@@ -206,6 +217,7 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
         // But not to the child itself, the (?) metacharacter requires
         // zero or one occurences only
         if (epsilon_from_child_final_states(child_nfa, final, false) < 0) {
+            FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
 
