@@ -3,6 +3,21 @@
 #include "nfa_state.h"
 #include "converter.h"
 
+// 3/6 nodes have repeated code to create a nfa and release child resources.
+// Fill it in with a macro to keep code dry
+#define NFA_CREATE_SINGLE_CHILD do {\
+/* Create list of final states,only one state here */\
+if (NFAStateList_add(final_states, &final) < 0) {\
+    return free_resources(start, final, final_states);\
+}\
+nfa = nfa_create(start, final_states);\
+\
+/* Release child NFA memory */\
+NFAStateList_free(child_nfa->final_states, NULL);\
+free(child_nfa->final_states);\
+free(child_nfa);\
+} while(0)
+
 typedef NFAState* State;
 typedef NFAStateList* StateList;
 
@@ -26,7 +41,7 @@ void* free_resources(State start, State final, StateList list) {
 }
 
 static
-int epsilon_from_child_final_states(NFA* child_nfa, State final) {
+int epsilon_from_child_final_states(NFA* child_nfa, State final, bool to_child) {
     StateList child_final_states = child_nfa->final_states;
     for (size_t i = 0; i < child_final_states->size; i++) {
         State state = child_final_states->list[i];
@@ -44,11 +59,13 @@ int epsilon_from_child_final_states(NFA* child_nfa, State final) {
             return -1;
         }
 
-        // Every final state of the child nfa can epsilon transition
-        // back to the child's start state for 1 or more repetitions.
-        // This is the property of the (*) metacharacter in regex.
-        if (add_transition(state, child_nfa->start_state, EPSILON) < 0) {
-            return -1;
+        if (to_child) {
+            // Every final state of the child nfa can epsilon transition
+            // back to the child's start state for 1 or more repetitions.
+            // This is the property of the (*) and (+) metacharacters in regex.
+            if (add_transition(state, child_nfa->start_state, EPSILON) < 0) {
+                return -1;
+            }
         }
     }
 
@@ -106,7 +123,7 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
 
 ////////////////////////////////////////////////////////////////////////////////
 /*
-    The idea for the rest of these nodes, i.e. nodes that have children, is,
+    The idea for the next three nodes, i.e. nodes that have one child, is,
     1. The child is independent of the current node. So, we can make
        an NFA for the child AST.
     2. Then wrap that NFA within our NFA, by adding relevant transitions.
@@ -140,20 +157,11 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
         }
 
         // Add epsilon transitions from child's final states to our final state
-        if (epsilon_from_child_final_states(child_nfa, final) < 0) {
+        if (epsilon_from_child_final_states(child_nfa, final, true) < 0) {
             return free_resources(start, final, final_states);
         }
 
-        // Create list of final states,only one state here
-        if (NFAStateList_add(final_states, &final) < 0) {
-            return free_resources(start, final, final_states);
-        }
-        nfa = nfa_create(start, final_states);
-
-        // Release child NFA memory
-        NFAStateList_free(child_nfa->final_states, NULL);
-        free(child_nfa->final_states);
-        free(child_nfa);
+        NFA_CREATE_SINGLE_CHILD;
         break;
 
     case PLUS_NODE:
@@ -171,23 +179,37 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
         }
 
         // Add epsilon transitions from child's final states to our final state
-        if (epsilon_from_child_final_states(child_nfa, final) < 0) {
+        if (epsilon_from_child_final_states(child_nfa, final, true) < 0) {
             return free_resources(start, final, final_states);
         }
 
-        // Create list of final states,only one state here
-        if (NFAStateList_add(final_states, &final) < 0) {
-            return free_resources(start, final, final_states);
-        }
-        nfa = nfa_create(start, final_states);
-
-        // Release child NFA memory
-        NFAStateList_free(child_nfa->final_states, NULL);
-        free(child_nfa->final_states);
-        free(child_nfa);
+        NFA_CREATE_SINGLE_CHILD;
         break;
 
     case QUESTION_NODE:
+        child_nfa = convert_ast_to_nfa(root->child1);
+        if (child_nfa == NULL) {
+            return free_resources(start, final, final_states);
+        }
+
+        // Add link to parent NFA's start state. Zero repetition case
+        if (add_transition(start, final, EPSILON) < 0) {
+            return free_resources(start, final, final_states);
+        }
+
+        // Add link to child NFA's start state
+        if (add_transition(start, child_nfa->start_state, EPSILON) < 0) {
+            return free_resources(start, final, final_states);
+        }
+
+        // Add epsilon transitions from child's final states to our final state
+        // But not to the child itself, the (?) metacharacter requires
+        // zero or one occurences only
+        if (epsilon_from_child_final_states(child_nfa, final, false) < 0) {
+            return free_resources(start, final, final_states);
+        }
+
+        NFA_CREATE_SINGLE_CHILD;
         break;
 
     case OR_NODE:
