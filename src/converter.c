@@ -49,6 +49,8 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
     NFA* nfa = NULL;
     NFA* child_nfa = NULL;
 
+    StateList child_final_states;
+
     switch (root->type) {
 ////////////////////////////////////////////////////////////////////////////////
 /*
@@ -99,15 +101,17 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
             return free_resources(start, final, final_states);
         }
 
+        // Add link to parent NFA's start state. Zero repetition case
         if (add_transition(start, final, EPSILON) < 0) {
             return free_resources(start, final, final_states);
         }
 
+        // Add link to child NFA's start state
         if (add_transition(start, child_nfa->start_state, EPSILON) < 0) {
             return free_resources(start, final, final_states);
         }
 
-        StateList child_final_states = child_nfa->final_states;
+        child_final_states = child_nfa->final_states;
         for (size_t i = 0; i < child_final_states->size; i++) {
             State state = child_final_states->list[i];
             if (state == NULL) {
@@ -119,8 +123,7 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
             state->is_final = false;
 
             // Every final state of the child nfa can epsilon transition
-            // to our final state. The zero repetiton case
-            // This is the property of the (*) metacharacter in regex.
+            // to our final state.
             if (add_transition(state, final, EPSILON) < 0) {
                 return free_resources(start, final, final_states);
             }
@@ -146,6 +149,54 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
         break;
 
     case PLUS_NODE:
+        child_nfa = convert_ast_to_nfa(root->child1);
+        if (child_nfa == NULL) {
+            return free_resources(start, final, final_states);
+        }
+
+        // Note: No link to parent NFA's start state, the (+) metacharacter
+        // requires at least 1 occurence of the child pattern
+
+        // Add link to child NFA's start state
+        if (add_transition(start, child_nfa->start_state, EPSILON) < 0) {
+            return free_resources(start, final, final_states);
+        }
+
+        child_final_states = child_nfa->final_states;
+        for (size_t i = 0; i < child_final_states->size; i++) {
+            State state = child_final_states->list[i];
+            if (state == NULL) {
+                continue;
+            }
+
+            // We wrap the child nfa, so it's final state is no longer a
+            // final state
+            state->is_final = false;
+
+            // Every final state of the child nfa can epsilon transition
+            // to our final state.
+            if (add_transition(state, final, EPSILON) < 0) {
+                return free_resources(start, final, final_states);
+            }
+
+            // Every final state of the child nfa can epsilon transition
+            // back to the child's start state for more repetitions.
+            // This is the property of the (+) metacharacter in regex.
+            if (add_transition(state, child_nfa->start_state, EPSILON) < 0) {
+                return free_resources(start, final, final_states);
+            }
+        }
+
+        // Create list of final states,only one state here
+        if (NFAStateList_add(final_states, &final) < 0) {
+            return free_resources(start, final, final_states);
+        }
+        nfa = nfa_create(start, final_states);
+
+        // Release child NFA memory
+        NFAStateList_free(child_nfa->final_states, NULL);
+        free(child_nfa->final_states);
+        free(child_nfa);
         break;
 
     case QUESTION_NODE:
