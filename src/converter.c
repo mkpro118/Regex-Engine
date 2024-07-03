@@ -3,26 +3,64 @@
 #include "nfa_state.h"
 #include "converter.h"
 
+typedef NFAState* State;
+typedef NFAStateList* StateList;
+
+static inline
+void free_resources(State start, State final, StateList list) {
+    if (start != NULL) {
+        state_free(start);
+    }
+
+    if (final != NULL) {
+        state_free(final);
+    }
+
+    if (list != NULL) {
+        NFAStateList_free(list, NULL);
+        free(list);
+    }
+}
+
 // Convert AST to NFA
 NFA* convert_ast_to_nfa(ASTNode* root) {
-    NFAState* start;
-    NFAState* final;
-    NFAStateList* final_states = NFAStateList_create(1);
+    State start = state_create(false);
+    if (start == NULL) {
+        return NULL;
+    }
+
+    State final = state_create(true);
+    if (final == NULL) {
+        free_resources(start, NULL, NULL);
+        return NULL;
+    }
+
+    StateList final_states = NFAStateList_create(1);
+    if (final_states == NULL) {
+        free_resources(start, final, NULL);
+    }
+
+    NFA* nfa;
 
     switch (root->type) {
     case CHAR_NODE:
-        // Create states
-        start = state_create(false);
-        final = state_create(true);
-
         // add a transition on the node's character
-        add_transition(start, final, root->extra.character);
+        if (add_transition(start, final, root->extra.character) < 0) {
+            free_resources(start, final, final_states);
+        }
 
         // Create list of final states,only one state here
-        NFAStateList_add(final_states, &final);
+        if (NFAStateList_add(final_states, &final) < 0) {
+            free_resources(start, final, final_states);
+        }
 
         // Create the NFA
-        return nfa_create(start, final_states);
+        nfa = nfa_create(start, final_states);
+        if (nfa == NULL) {
+            free_resources(start, final, final_states);
+        }
+
+        return nfa;
 
     case STAR_NODE:
         break;
