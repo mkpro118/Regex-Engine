@@ -34,6 +34,7 @@ typedef struct NFAState {
     unsigned long long int ID;
     bool is_final;
     bool should_free;
+    bool visited;
     NFAStateList* transitions[MAX_N_TRANSITIONS];
 } NFAState;
 
