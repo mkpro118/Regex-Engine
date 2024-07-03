@@ -198,7 +198,7 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
 
     default:
         // Ideally should never get here
-        return NULL;
+        return free_resources(start, final, final_states);
     }
 
     if (nfa == NULL) {
