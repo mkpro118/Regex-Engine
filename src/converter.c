@@ -25,6 +25,36 @@ void* free_resources(State start, State final, StateList list) {
     return NULL;
 }
 
+static
+int epsilon_from_child_final_states(NFA* child_nfa, State final) {
+    StateList child_final_states = child_nfa->final_states;
+    for (size_t i = 0; i < child_final_states->size; i++) {
+        State state = child_final_states->list[i];
+        if (state == NULL) {
+            continue;
+        }
+
+        // We wrap the child nfa, so it's final state is no longer a
+        // final state
+        state->is_final = false;
+
+        // Every final state of the child nfa can epsilon transition
+        // to our final state.
+        if (add_transition(state, final, EPSILON) < 0) {
+            return -1;
+        }
+
+        // Every final state of the child nfa can epsilon transition
+        // back to the child's start state for 1 or more repetitions.
+        // This is the property of the (*) metacharacter in regex.
+        if (add_transition(state, child_nfa->start_state, EPSILON) < 0) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 // Convert AST to NFA
 NFA* convert_ast_to_nfa(ASTNode* root) {
     if (root == NULL) {
@@ -48,8 +78,6 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
 
     NFA* nfa = NULL;
     NFA* child_nfa = NULL;
-
-    StateList child_final_states;
 
     switch (root->type) {
 ////////////////////////////////////////////////////////////////////////////////
@@ -111,29 +139,9 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
             return free_resources(start, final, final_states);
         }
 
-        child_final_states = child_nfa->final_states;
-        for (size_t i = 0; i < child_final_states->size; i++) {
-            State state = child_final_states->list[i];
-            if (state == NULL) {
-                continue;
-            }
-
-            // We wrap the child nfa, so it's final state is no longer a
-            // final state
-            state->is_final = false;
-
-            // Every final state of the child nfa can epsilon transition
-            // to our final state.
-            if (add_transition(state, final, EPSILON) < 0) {
-                return free_resources(start, final, final_states);
-            }
-
-            // Every final state of the child nfa can epsilon transition
-            // back to the child's start state for 1 or more repetitions.
-            // This is the property of the (*) metacharacter in regex.
-            if (add_transition(state, child_nfa->start_state, EPSILON) < 0) {
-                return free_resources(start, final, final_states);
-            }
+        // Add epsilon transitions from child's final states to our final state
+        if (epsilon_from_child_final_states(child_nfa, final) < 0) {
+            return free_resources(start, final, final_states);
         }
 
         // Create list of final states,only one state here
@@ -162,29 +170,9 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
             return free_resources(start, final, final_states);
         }
 
-        child_final_states = child_nfa->final_states;
-        for (size_t i = 0; i < child_final_states->size; i++) {
-            State state = child_final_states->list[i];
-            if (state == NULL) {
-                continue;
-            }
-
-            // We wrap the child nfa, so it's final state is no longer a
-            // final state
-            state->is_final = false;
-
-            // Every final state of the child nfa can epsilon transition
-            // to our final state.
-            if (add_transition(state, final, EPSILON) < 0) {
-                return free_resources(start, final, final_states);
-            }
-
-            // Every final state of the child nfa can epsilon transition
-            // back to the child's start state for more repetitions.
-            // This is the property of the (+) metacharacter in regex.
-            if (add_transition(state, child_nfa->start_state, EPSILON) < 0) {
-                return free_resources(start, final, final_states);
-            }
+        // Add epsilon transitions from child's final states to our final state
+        if (epsilon_from_child_final_states(child_nfa, final) < 0) {
+            return free_resources(start, final, final_states);
         }
 
         // Create list of final states,only one state here
