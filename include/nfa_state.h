@@ -33,6 +33,7 @@ typedef struct NFAStateList NFAStateList;
 typedef struct NFAState {
     unsigned long long int ID;
     bool is_final;
+    bool should_free;
     NFAStateList* transitions[MAX_N_TRANSITIONS];
 } NFAState;
 

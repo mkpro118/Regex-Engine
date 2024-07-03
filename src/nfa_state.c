@@ -16,6 +16,8 @@ NFAState* state_create(bool is_final) {
         return NULL;
     }
 
+    state->should_free = true;
+
     return state;
 }
 
@@ -28,6 +30,7 @@ int state_init(NFAState* state, bool is_final) {
 
     state->ID = id_ctr++;
     state->is_final = is_final;
+    state->should_free = false;
 
     for (int i = 0; i < MAX_N_TRANSITIONS; i++) {
         state->transitions[i] = NULL;
@@ -37,7 +40,10 @@ int state_init(NFAState* state, bool is_final) {
 }
 
 void state_ptr_free(NFAState** state) {
-    state_free(*state);
+    if (state != NULL && *state != NULL && (*state)->should_free) {
+        (*state)->should_free = false;
+        state_free(*state);
+    }
 }
 
 // Release the memory used by this NFA State.
