@@ -15,17 +15,55 @@ NFA* nfa_create(NFAState* start_state, NFAStateList* final_states) {
     return nfa;
 }
 
+/**
+ * Gathers all the states from a given start state
+ *
+ * Uses depth first search on the state's transitions to gather states
+ * I am okay with using recursion here for simplicity.
+ *
+ * @param list  The list to place the gathered states in
+ * @param state The state to start the search from
+ */
+void gather_states(NFAStateList* list, NFAState* state) {
+    if (list == NULL || state == NULL) {
+        return;
+    }
+
+    // Set like add
+    if (!state->visited) {
+        NFAStateList_add(list, &state);
+        state->visited = true;
+    }
+
+    // Loop over the transition characters
+    for (int i = 0; i < MAX_N_TRANSITIONS; i++) {
+        if (state->transitions[i] == NULL) {
+            continue;
+        }
+
+        // Loop over the possible transitions on a given characters
+        for (size_t j = 0; j < state->transitions[i]->size; j++) {
+            gather_states(list, state->transitions[i]->list[j]);
+        }
+    }
+}
+
 void nfa_free(NFA* nfa) {
     if (nfa == NULL) {
         return;
     }
-    if (nfa->start_state != NULL) {
-        state_free(nfa->start_state);
-    }
 
-    if (nfa->final_states != NULL) {
-        NFAStateList_free(nfa->final_states, state_ptr_free);
-    }
+    // there are at least start_state + len(final_state) states
+    // Initialize the list with that capacity
+    NFAStateList* gathered_states = NFAStateList_create(1 + nfa->final_states->size);
+    gather_states(gathered_states, nfa->start_state);
+
+    // Free all the gathered states
+    NFAStateList_free(gathered_states, state_ptr_free);
+    free(gathered_states);
+
+    NFAStateList_free(nfa->final_states, NULL);
+    free(nfa->final_states);
 }
 
 int state_ptr_cmp(const NFAState** a, const NFAState** b) {
