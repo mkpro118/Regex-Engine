@@ -55,8 +55,8 @@ void* free_resources(State start, State final, StateList list) {
 }
 
 static
-int epsilon_from_final_states(NFA* child_nfa, State final, bool to_child) {
-    StateList child_final_states = child_nfa->final_states;
+int epsilon_from_final_states(NFA* from_nfa, State to_state, bool to_child) {
+    StateList child_final_states = from_nfa->final_states;
     for (size_t i = 0; i < child_final_states->size; i++) {
         State state = child_final_states->list[i];
         if (state == NULL) {
@@ -69,7 +69,7 @@ int epsilon_from_final_states(NFA* child_nfa, State final, bool to_child) {
 
         // Every final state of the child nfa can epsilon transition
         // to our final state.
-        if (add_transition(state, final, EPSILON) < 0) {
+        if (add_transition(state, to_state, EPSILON) < 0) {
             return -1;
         }
 
@@ -77,7 +77,7 @@ int epsilon_from_final_states(NFA* child_nfa, State final, bool to_child) {
             // Every final state of the child nfa can epsilon transition
             // back to the child's start state for 1 or more repetitions.
             // This is the property of the (*) and (+) metacharacters in regex.
-            if (add_transition(state, child_nfa->start_state, EPSILON) < 0) {
+            if (add_transition(state, from_nfa->start_state, EPSILON) < 0) {
                 return -1;
             }
         }
@@ -320,8 +320,7 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
             return NULL;
         }
 
-        // As a "hack", we can actually reuse this function to accomplish
-        // transitions from left nfa's final states to the right nfa's start
+        // Add transitions from left nfa's final states to the right nfa's start
         // No self links though.
         if (epsilon_from_final_states(left_nfa, right_nfa->start_state, false) < 0) {
             FREE_NFAS(left_nfa, right_nfa);
