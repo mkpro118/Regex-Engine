@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "ast.h"
 #include "nfa.h"
 #include "nfa_state.h"
@@ -39,7 +38,6 @@ static const char EPSILON = '\0';
 
 static inline
 void* free_resources(State start, State final, StateList list) {
-    printf("FREEING RESOURCES\n");
     if (start != NULL) {
         state_free(start);
     }
@@ -49,17 +47,15 @@ void* free_resources(State start, State final, StateList list) {
     }
 
     if (list != NULL) {
-        printf("list is not null, freeing\n");
         NFAStateList_free(list, NULL);
         free(list);
-    } else {
-        printf("list is null, NOT freeing\n");
     }
+
     return NULL;
 }
 
 static
-int epsilon_from_child_final_states(NFA* child_nfa, State final, bool to_child) {
+int epsilon_from_final_states(NFA* child_nfa, State final, bool to_child) {
     StateList child_final_states = child_nfa->final_states;
     for (size_t i = 0; i < child_final_states->size; i++) {
         State state = child_final_states->list[i];
@@ -179,7 +175,7 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
         }
 
         // Add epsilon transitions from child's final states to our final state
-        if (epsilon_from_child_final_states(child_nfa, final, true) < 0) {
+        if (epsilon_from_final_states(child_nfa, final, true) < 0) {
             FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
@@ -203,7 +199,7 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
         }
 
         // Add epsilon transitions from child's final states to our final state
-        if (epsilon_from_child_final_states(child_nfa, final, true) < 0) {
+        if (epsilon_from_final_states(child_nfa, final, true) < 0) {
             FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
@@ -232,7 +228,7 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
         // Add epsilon transitions from child's final states to our final state
         // But not to the child itself, the (?) metacharacter requires
         // zero or one occurences only
-        if (epsilon_from_child_final_states(child_nfa, final, false) < 0) {
+        if (epsilon_from_final_states(child_nfa, final, false) < 0) {
             FREE_NFA(child_nfa);
             return free_resources(start, final, final_states);
         }
@@ -279,14 +275,14 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
 
         // Add epsilon transition from left child's final states to
         // parent's final. Do not link from final to start in the child
-        if (epsilon_from_child_final_states(left_nfa, final, false) < 0) {
+        if (epsilon_from_final_states(left_nfa, final, false) < 0) {
             FREE_NFAS(left_nfa, right_nfa);
             return free_resources(start, final, final_states);
         }
 
         // Add epsilon transition from right child's final states to
         // parent's final. Do not link from final to start in the child
-        if (epsilon_from_child_final_states(right_nfa, final, false) < 0) {
+        if (epsilon_from_final_states(right_nfa, final, false) < 0) {
             FREE_NFAS(left_nfa, right_nfa);
             return free_resources(start, final, final_states);
         }
@@ -327,7 +323,7 @@ NFA* convert_ast_to_nfa(ASTNode* root) {
         // As a "hack", we can actually reuse this function to accomplish
         // transitions from left nfa's final states to the right nfa's start
         // No self links though.
-        if (epsilon_from_child_final_states(left_nfa, right_nfa->start_state, false) < 0) {
+        if (epsilon_from_final_states(left_nfa, right_nfa->start_state, false) < 0) {
             FREE_NFAS(left_nfa, right_nfa);
             return NULL;
         }
