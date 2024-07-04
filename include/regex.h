@@ -60,8 +60,6 @@ int regex_compile(Regex* regex_buf, char* pattern);
 /**
  * Test whether the given string matches the given regex.
  *
- * This function will compile the regex if it is not already compiled
- *
  * @param  regex_buf  The regex buffer to match with
  * @param  string     The string to match
  *
