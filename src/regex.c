@@ -45,8 +45,17 @@ int regex_init(Regex* regex_buf, char* pattern) {
 int regex_compile(Regex* regex_buf, char* pattern);
 
 // Test whether the given string matches the given regex.
-// This function will compile the regex if it is not already compiled.
-bool regex_match(Regex* regex_buf, char* string);
+bool regex_match(Regex* regex_buf, char* string) {
+    if (regex_buf == NULL || string == NULL) {
+        return false;
+    }
+
+    if (!regex_buf->is_compiled || regex_buf->nfa == NULL) {
+        return false;
+    }
+
+    return nfa_match(regex_buf->nfa, string);
+}
 
 // Release the memory used by the given regex structure
 void regex_free(Regex* regex_buf) {
