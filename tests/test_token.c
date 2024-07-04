@@ -1,5 +1,6 @@
 #include <ctype.h>
 
+#define FAIL_FAST
 #include "testlib/asserts.h"
 #include "testlib/tests.h"
 #include "token.h"
