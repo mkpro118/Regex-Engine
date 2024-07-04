@@ -13,7 +13,33 @@ Regex* regex_create(char* pattern) {
 }
 
 // Initialize a given regex buffer.
-int regex_init(Regex* regex_buf, char* pattern);
+int regex_init(Regex* regex_buf, char* pattern) {
+    if (regex_buf == NULL) {
+        return -1;
+    }
+
+    *regex_buf = (Regex) {
+        .nfa = NULL,
+        .is_compiled = false,
+        .pattern = NULL,
+    };
+
+    if (pattern == NULL) {
+        return 0;
+    }
+
+    regex_buf->pattern = strdup(pattern);
+    if (regex_buf->pattern == NULL) {
+        return -1;
+    }
+
+    if (regex_compile(regex_buf, pattern) < 0) {
+        regex_free(regex_buf);
+        return -1;
+    }
+
+    return 0;
+}
 
 // Compile a given regex pattern.
 int regex_compile(Regex* regex_buf, char* pattern);
