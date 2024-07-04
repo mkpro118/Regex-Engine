@@ -301,7 +301,7 @@ Test tests[] = {
     {.name="test_convert_question_node", .func=test_convert_question_node},
     {.name="test_convert_or_node", .func=test_convert_or_node},
     {.name="test_convert_concat_node", .func=test_convert_concat_node},
-    // {.name="test_convert_complex_ast", .func=test_convert_complex_ast},
+    {.name="test_convert_complex_ast", .func=test_convert_complex_ast},
     {.name=NULL, .func=NULL}
 };
 
