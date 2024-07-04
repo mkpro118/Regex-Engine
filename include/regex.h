@@ -53,7 +53,7 @@ int regex_init(Regex* regex_buf, char* pattern);
  * @param  regex_buf   A pointer to the a regex buffer
  * @param  pattern The regex pattern
  *
- * @return 0 on success, -1 on failure
+ * @return 0 on success, -1 on failure, 1 if the pattern is already compiled
  */
 int regex_compile(Regex* regex_buf, char* pattern);
 
