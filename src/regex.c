@@ -80,7 +80,6 @@ int regex_compile(Regex* regex_buf, char* pattern) {
 
     // Release resources
     ast_node_free(root);
-    free(root);
 
     if (nfa == NULL) {
         return -1;
