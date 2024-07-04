@@ -16,6 +16,8 @@ NFAState* state_create(bool is_final) {
         return NULL;
     }
 
+    state->should_free = true;
+
     return state;
 }
 
@@ -28,6 +30,8 @@ int state_init(NFAState* state, bool is_final) {
 
     state->ID = id_ctr++;
     state->is_final = is_final;
+    state->should_free = false;
+    state->visited = false;
 
     for (int i = 0; i < MAX_N_TRANSITIONS; i++) {
         state->transitions[i] = NULL;
@@ -37,7 +41,10 @@ int state_init(NFAState* state, bool is_final) {
 }
 
 void state_ptr_free(NFAState** state) {
-    state_free(*state);
+    if (state != NULL && *state != NULL) {
+        state_free(*state);
+        *state = NULL;
+    }
 }
 
 // Release the memory used by this NFA State.
@@ -48,10 +55,15 @@ void state_free(NFAState* state) {
 
     for (int i = 0; i < MAX_N_TRANSITIONS; i++) {
         if (state->transitions[i] != NULL) {
-            NFAStateList_free(state->transitions[i], state_ptr_free);
-            free(state->transitions[i]);
+            NFAStateList_free(state->transitions[i], NULL);
+            free(state->transitions[i]); // frees the list
         }
         state->transitions[i] = NULL;
+    }
+
+    // This would be set if the state was malloc'd by state_create
+    if (state->should_free) {
+        free(state);
     }
 }
 
@@ -80,8 +92,7 @@ int add_transition(NFAState* from, NFAState* to, char on) {
     }
 
     // Add the transition
-    int size = NFAStateList_add(from->transitions[index], &to);
-    return size;
+    return NFAStateList_add(from->transitions[index], &to);
 }
 
 // Get the transition for the `on` character for the given NFA State
