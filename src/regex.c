@@ -50,7 +50,6 @@ int regex_compile(Regex* regex_buf, char* pattern) {
 
         // Otherwise, reset and re-initialize
         regex_free(regex_buf);
-        regex_init(regex_buf, pattern);
     }
 
     // Initialize a lexer with the pattern
@@ -117,4 +116,6 @@ void regex_free(Regex* regex_buf) {
     }
 
     nfa_free(regex_buf->nfa);
+    free(regex_buf->nfa);
+    regex_buf->nfa = NULL;
 }
