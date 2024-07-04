@@ -1,5 +1,6 @@
 #include <stdbool.h>
 
+#define FAIL_FAST
 #include "testlib/asserts.h"
 #include "testlib/tests.h"
 #include "nfa.h"
