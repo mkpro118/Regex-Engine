@@ -49,4 +49,11 @@ int regex_compile(Regex* regex_buf, char* pattern);
 bool regex_match(Regex* regex_buf, char* string);
 
 // Release the memory used by the given regex structure
-void regex_free(Regex* regex_buf);
+void regex_free(Regex* regex_buf) {
+    if (regex_buf == NULL) {
+        return;
+    }
+
+    nfa_free(regex_buf->nfa);
+    free(regex_buf->pattern);
+}
